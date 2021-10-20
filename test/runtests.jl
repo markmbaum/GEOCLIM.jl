@@ -1,6 +1,6 @@
-using .
+using GEOCLIM
 using Test
 
-@testset "..jl" begin
+@testset "GEOCLIM" begin
     # Write your tests here.
 end
