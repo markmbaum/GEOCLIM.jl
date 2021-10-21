@@ -1,6 +1,7 @@
 module GEOCLIM
 
 using NetCDF
+using UnPack
 using BasicInterpolators
 
 #------------------------------------------------------------------------------
@@ -17,20 +18,31 @@ export Climatology, weathering
 
 cellarea(Δϕ, θ₁, θ₂) = Δϕ*(cos(θ₁) - cos(θ₂))
 
-weathering(r, T, A, k, Eₐ, T₀) = k*r*A*exp(-(Eₐ/𝐑)*(1/T - 1/T₀))
-
-weathering(C::Climatology, k, Eₐ, T₀) = weathering.(C.r, C.T, C.A, k, Eₐ, T₀)
-
-struct Climatology{T}
+struct Climatology{F}
     mask::BitMatrix
-    r::Matrix{T}
-    T::Matrix{T}
-    A::Matrix{T}
+    r::Matrix{F}
+    T::Matrix{F}
+    A::Matrix{F}
+end
+
+function Base.show(io::IO, C::Climatology{F}) where {F}
+    @unpack mask, r, T, A = C
+    n, m = size(r)
+    print(io, "$n x $m Climatology{$F}\n")
+    Tmax = round(maximum(T[mask]), sigdigits=4)
+    Tmin = round(minimum(T[mask]), sigdigits=4)
+    print(io, "  temperature ∈ [$Tmin, $Tmax] K\n")
+    rmax = round(maximum(r[mask]), sigdigits=4)
+    rmin = round(minimum(r[mask]), sigdigits=4)
+    print(io, "  runoff ∈ [$rmin, $rmax] m/s\n")
+    f = round(sum(A[mask])/sum(A), sigdigits=4)
+    print(io, "  land fraction = $f")
 end
 
 function Climatology(nc_runoff::String,
                      var_runoff::String,
                      fill_runoff::Real,
+                     conversion_runoff::Real,
                      nc_temperature::String,
                      var_temperature::String)
 
@@ -45,6 +57,8 @@ function Climatology(nc_runoff::String,
     r[r .< 0] .= NaN
     #make a mask to keep
     mask = r .|> isnan .|> !
+    #convert units
+    r .*= conversion_runoff
 
     #read temperature file
     T = ncread(nc_temperature, var_temperature)
@@ -69,4 +83,6 @@ function Climatology(nc_runoff::String,
     Climatology(mask, r, T, A)
 end
 
-end
+weathering(r, T, A, k, Eₐ, T₀) = k*r*A*exp(-(Eₐ/𝐑)*(1/T - 1/T₀))
+
+weathering(C::Climatology, k, Eₐ, T₀) = weathering.(C.r, C.T, C.A, k, Eₐ, T₀)
