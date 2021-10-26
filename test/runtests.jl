@@ -2,5 +2,6 @@ using GEOCLIM
 using Test
 
 @testset "GEOCLIM" begin
-    # Write your tests here.
+    #just a dummy test for now, until specific test files are ready
+    @test 1 > 0
 end
