@@ -5,7 +5,10 @@ version = "0.1.0"
 
 [deps]
 BasicInterpolators = "26cce99e-4866-4b6d-ab74-862489e035e0"
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+NLsolve = "2774e3e8-f4cf-5e23-947b-6d7e65073b56"
 NetCDF = "30363a11-5582-574a-97bb-aa9a979735b9"
+Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
 UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
 [compat]
