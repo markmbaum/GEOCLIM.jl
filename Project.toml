@@ -14,7 +14,9 @@ UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 [compat]
 BasicInterpolators = "0.6"
 ForwardDiff = "0.10"
+NLsolve = "4"
 NetCDF = "0.11"
+Roots = "1"
 UnPack = "1"
 julia = "1.3"
 
