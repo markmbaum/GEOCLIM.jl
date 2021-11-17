@@ -2,7 +2,7 @@ using GEOCLIM
 
 ##
 
-datadir = "C:/Users/markm/Documents/code/GEOCLIM/data"
+datadir = "/Users/minminfu/Dropbox/Mark-and-Minmin/GEOCLIM"
 
 ##
 
