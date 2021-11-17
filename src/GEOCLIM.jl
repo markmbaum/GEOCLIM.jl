@@ -24,22 +24,43 @@ include("ClimatologyInterpolator.jl")
 #------------------------------------------------------------------------------
 # useful functions
 
-export weathering, totalweathering, findequilibrium
+export weathering_whak1, totalweathering_whak1, weathering_whak2, totalweathering_whak2, findequilibrium
 
-weathering(r, T, A, k, Eₐ, T₀) = k*r*A*exp((Eₐ/𝐑)*(1/T₀ - 1/T))
+#------------------------------------------------------------------------------
+# As implementated by Goddéris et al. 2017
+weathering_whak1(r, T, A, k, Eₐ, T₀) = k*r*A*exp((Eₐ/𝐑)*(1/T₀ - 1/T))
 
-weathering(𝒸::Climatology, k, Eₐ, T₀) = weathering.(𝒸.r, 𝒸.T, 𝒸.A, k, Eₐ, T₀)
+weathering_whak1(𝒸::Climatology, k, Eₐ, T₀) = weathering_whak1.(𝒸.r, 𝒸.T, 𝒸.A, k, Eₐ, T₀)
 
-function totalweathering(𝒸::Climatology, k, Eₐ, T₀)
+function totalweathering_whak1(𝒸::Climatology, k, Eₐ, T₀)
     @unpack mask, r, T, A, n, m = 𝒸
     ΣW = 0.0
     @inbounds for i ∈ 1:n, j ∈ 1:m
         if mask[i,j]
-            ΣW += weathering(r[i,j], T[i,j], A[i,j], k, Eₐ, T₀)
+            ΣW += weathering_whak1(r[i,j], T[i,j], A[i,j], k, Eₐ, T₀)
         end
     end
     return ΣW
 end
+
+#------------------------------------------------------------------------------
+# As implementated by Abbot et al. 2012 
+# pCO2 dependence is added and the temperature dependence is slightly different
+weathering_whak2(r, T, A, pCO2, k, Eₐ, T₀, pCO2₀, β) = k*r*A*exp((Eₐ/𝐑)*(T-T₀)/T₀^2)*(pCO2/pCO2₀)^β
+
+weathering_whak2(𝒸::Climatology, pCO2, k, Eₐ, T₀, pCO2₀, β) = weathering_whak2.(𝒸.r, 𝒸.T, 𝒸.A, pCO2, k, Eₐ, T₀, pCO2₀, β)
+
+function totalweathering_whak2(𝒸::Climatology, pCO2, k, Eₐ, T₀, pCO2₀, β)
+    @unpack mask, r, T, A, n, m = 𝒸
+    ΣW = 0.0
+    @inbounds for i ∈ 1:n, j ∈ 1:m
+        if mask[i,j]
+            ΣW += weathering_whak2(r[i,j], T[i,j], A[i,j], pCO2, k, Eₐ, T₀, pCO2₀, β)
+        end
+    end
+    return ΣW
+end
+
 
 function findequilibrium(ℐ::ClimatologyInterpolator,
                          𝒻::F,

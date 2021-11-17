@@ -26,8 +26,8 @@ function f!(F, x)::Nothing
     #unpack
     kG, kGb = x
     #weathering terms
-    w₁ = totalweathering(C, kG, Ea, T0)
-    w₂ = totalweathering(C, kGb, Eab, T0)
+    w₁ = totalweathering_whak1(C, kG, Ea, T0)
+    w₂ = totalweathering_whak1(C, kGb, Eab, T0)
     #first equation is weathering balance
     F[1] = w₁ + w₂ - W
     #second argument is percentage of terms
