@@ -1,6 +1,6 @@
 export ClimatologyInterpolator
 
-struct ClimatologyInterpolator{I}
+struct ClimatologyInterpolator{I<:OneDimensionalInterpolator}
     x::Vector{Float64}
     mask::BitMatrix
     r::Matrix{I}
@@ -36,8 +36,7 @@ function ClimatologyInterpolator(𝒞::AbstractVector{Climatology},
     end
     #construct interpolators
     x = collect(Float64, x)
-    r = Matrix{interpolator}(undef, n, m)
-    T = Matrix{interpolator}(undef, n, m)
+    @multiassign r, T = Matrix{interpolator}(undef, n, m)
     for i ∈ 1:n, j ∈ 1:m
         if mask[i,j]
             r[i,j] = interpolator(x, map(𝒸->𝒸.r[i,j], 𝒞), boundaries())
@@ -49,10 +48,11 @@ function ClimatologyInterpolator(𝒞::AbstractVector{Climatology},
 end
 
 function (ℐ::ClimatologyInterpolator)(x)
+    #pull out fields of struct
     @unpack mask, r, T, A, n, m = ℐ
+    #assume NaN until unmasked
+    @multiassign rₓ, Tₓ = fill(NaN, (n, m))
     #interpolate runoff and temperature at all points
-    rₓ = fill(NaN, (n, m))
-    Tₓ = fill(NaN, (n, m))
     @inbounds for i ∈ 1:n, j ∈ 1:m
         if mask[i,j]
             rₓ[i,j] = r[i,j](x)

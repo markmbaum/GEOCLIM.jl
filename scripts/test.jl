@@ -3,6 +3,7 @@ using GEOCLIM
 ##
 
 datadir = "/Users/minminfu/Dropbox/Mark-and-Minmin/GEOCLIM"
+#datadir = "C:/Users/markm/Dropbox/Mark-and-Minmin/GEOCLIM"
 
 ##
 # This one is the climatology. 
