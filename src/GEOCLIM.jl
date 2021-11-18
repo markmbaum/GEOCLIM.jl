@@ -61,6 +61,11 @@ function totalweathering_whak2(𝒸::Climatology, pCO2, k, Eₐ, T₀, pCO2₀, 
     return ΣW
 end
 
+#------------------------------------------------------------------------------
+# As implementated by Graham and Pierrehumbert 2020 
+# following Maher and Chamberlin 2014
+
+
 
 function findequilibrium(ℐ::ClimatologyInterpolator,
                          𝒻::F,
