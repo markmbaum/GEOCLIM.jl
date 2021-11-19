@@ -86,13 +86,15 @@ const tₛ = 1e5 # Soil age [yr]
 const m = 0.27 # Mineral molar mass [kg/mol]
 const μ = ℯ^2 # Scaling constant [-]
 const α = L*ϕ*ρ*𝐀*X*μ # Defined for convenience [-]
+const s_y = 31536000
 
 function Ceq(pCO2)
-    return Λ*(pCO2*1e-6)^n*1000 #conversion from mol/liter to mol/m3, ppm to bar
+    return Λ*(pCO2)^n*1000 #conversion from mol/liter to mol/m3, ppm to bar
 end
 
+# r input in m/s, convert to m/yr, convert result from mol/y back to mol/s
 function weathering_mac(r, T, A, pCO2, Tₑ, T₀, pCO2₀) 
-    A*α*((k₀*exp((T - T₀)/Tₑ)*(pCO2/pCO2₀)^β)^-1 + m*𝐀*tₛ + α/(r*Ceq(pCO2)))^-1
+    A*α*((k₀*exp((T - T₀)/Tₑ)*(pCO2/pCO2₀)^β)^-1 + m*𝐀*tₛ + α/(r*s_y*Ceq(pCO2)))^-1/s_y
 end
 
 function weathering_mac(𝒸::Climatology, pCO2, Tₑ, T₀, pCO2₀) 
