@@ -8,6 +8,7 @@ BasicInterpolators = "26cce99e-4866-4b6d-ab74-862489e035e0"
 MultiAssign = "5e2c8b86-4afa-40de-bd09-d9d381e5dc2b"
 NLsolve = "2774e3e8-f4cf-5e23-947b-6d7e65073b56"
 NetCDF = "30363a11-5582-574a-97bb-aa9a979735b9"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
 UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
