@@ -47,7 +47,7 @@ end
 
 #--------------------------------------
 # As implementated by Abbot et al. 2012 and Graham and Pierrehumbert 2020 
-# pCO2 dependence is added and the temperature dependence is slightly different from godderis (original geoclim)
+# pCO2 dependence is added and the temperature dependence is slightly different from Goddéris (original geoclim)
 
 export whak
 
@@ -68,7 +68,7 @@ end
 
 #------------------------------------------------------------------------------
 # MAC, as implementated by Graham and Pierrehumbert 2020 
-# following Maher and Chamberlin 2014
+# following Maher and Chamberlain 2014
 
 export mac
 
@@ -89,7 +89,7 @@ function mac(r, T, A, pCO2, Tₑ, T₀, pCO2₀;
     #defined for convenience
     α = L*ϕ*ρ*𝐀*X*μ
     #equilibrium concentration
-    Ceq = 1e3*Λ*pCO2^n #conversion from mol/liter to mol/m3, ppm to bar
+    Ceq = 1e3*Λ*pCO2^n #conversion from mol/liter to mol/m3
     #weathering
     A*α*((k₀*exp((T - T₀)/Tₑ)*(pCO2/pCO2₀)^β)^-1 + m*𝐀*tₛ + α/(r*𝐲𝐫*Ceq))^-1/𝐲𝐫
 end
