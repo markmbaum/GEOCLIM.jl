@@ -31,16 +31,14 @@ Te = 11.1
 kG2 = W/whak(C0, 285e-6, 1, Te, T0, 285e-6)
 whak(C0, 285e-6, kG2, Te, T0, 285e-6)
 
-# MAC 
+# MAC (No calibration needed)
 Te = 11.1
-mac(C0, 285, Te, T0, 285)
-mac(C0, 1000, Te, T0, 285)
-
+mac(C0, 285e-6, Te, T0, 285e-6)
 
 #------------------------------------------------------------------------------
-# MAC, as implementated by Graham and Pierrehumbert 2020 
+# MAC, as implementated by Graham and Pierrehumbert 2020 (GH20)
 # following Maher and Chamberlin 2014
-##
+# Plot below reproduces Fig. 1 of GH20 to confirm the mac function works.
 using Plots
 Rvals = LinRange(0.001, 10, 10000)/86400/365
 plot(Rvals*86400*365,
