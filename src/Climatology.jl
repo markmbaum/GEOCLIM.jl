@@ -3,7 +3,7 @@ export Climatology
 #area of a grid box rectangular in latitude and longitude
 # colatitude θ ∈ [0,π]
 # longitude ϕ ∈ [0,2π]
-cellarea(r, Δϕ, θ₁, θ₂) = (r^2)*Δϕ*(cos(θ₁) - cos(θ₂))
+cellarea(r, Δϕ, θ₁, θ₂) = (r^2)*abs(Δϕ)*abs(cos(θ₁) - cos(θ₂))
 
 function checktranspose(X, n::Int, m::Int)::Matrix{Float64}
     if size(X) == (n,m)
