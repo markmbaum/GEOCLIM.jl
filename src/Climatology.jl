@@ -1,4 +1,4 @@
-export Climatology
+export Climatology, landfraction
 
 #area of a grid box rectangular in latitude and longitude
 # colatitude θ ∈ [0,π]
@@ -25,8 +25,8 @@ struct Climatology
     m::Int64 #number of columns/longitudes
 end
 
-function Base.show(io::IO, 𝒞::Climatology)
-    @unpack mask, r, T, A, f, n, m = 𝒞
+function Base.show(io::IO, 𝒸::Climatology)
+    @unpack mask, r, T, A, f, n, m = 𝒸
     println(io, "$n x $m Climatology")
     Tmax = round(maximum(T[mask]), sigdigits=4)
     Tmin = round(minimum(T[mask]), sigdigits=4)
@@ -34,22 +34,26 @@ function Base.show(io::IO, 𝒞::Climatology)
     rmax = round(maximum(r[mask]), sigdigits=4)
     rmin = round(minimum(r[mask]), sigdigits=4)
     println(io, "  runoff ∈ [$rmin, $rmax] m/s")
-    F = round(sum(A[mask] .* f[mask])/sum(A), sigdigits=4)
-    println(io, "  land fraction = $F")
+    println(io, "  land fraction = $(landfraction(𝒸))")
     N = sum(mask)
     print(io, "  $N/$(n*m) non-ocean cells")
 end
 
-Base.size(𝒞::Climatology) = (𝒞.n, 𝒞.m)
+Base.size(𝒸::Climatology) = (𝒸.n, 𝒸.m)
 
-function Climatology(fnr::String,    #runoff file name
-                     vr::String,     #runoff variable name
-                     nullr::Real,    #runoff empty/fill value
-                     convr::Real,    #runoff conversion factor
-                     fnT::String,    #temperature file name
-                     vT::String,     #temperature variable name
-                     fnf::String,    #land fraction file name
-                     vf::String)     #land fraction variable name
+function landfraction(𝒸::Climatology)
+    @unpack mask, A, f = 𝒸
+    sum(A[mask] .* f[mask])/sum(A)
+end
+
+function Climatology(fnr::String, #runoff file name
+                     vr::String,  #runoff variable name
+                     nullr::Real, #runoff empty/fill value
+                     convr::Real, #runoff conversion factor
+                     fnT::String, #temperature file name
+                     vT::String,  #temperature variable name
+                     fnf::String, #land fraction file name
+                     vf::String)  #land fraction variable name
     #read runoff grid
     r = readgrid(fnr, vr)
     #nullify null values

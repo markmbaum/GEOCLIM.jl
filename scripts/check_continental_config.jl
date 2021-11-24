@@ -13,7 +13,7 @@ cellarea(r, Δϕ, θ₁, θ₂) = (r^2)*abs(Δϕ)*abs(cos(θ₁) - cos(θ₂))
 
 ##
 
-fn = joinpath(ncdir, "topo_ens_n12_p-3_L50_0001.nc")
+fn = joinpath(ncdir, "topo_ens_n12_p-2_L30_0001.nc")
 lat = ncread(fn, "lat")
 lon = ncread(fn, "lon")
 topo = transpose(ncread(fn, "topo"));
@@ -29,7 +29,6 @@ for i ∈ 1:size(topo,1)
     #cell colatitude edges
     θ₁ = (lat[i] + 90)*(π/180) - Δ/2
     θ₂ = (lat[i] + 90)*(π/180) + Δ/2
-    println(θ₁, ' ', θ₂)
     for j ∈ 1:size(topo,2)
         #cell area
         a = cellarea(1.0, Δ, θ₁, θ₂)

@@ -3,8 +3,8 @@ export ClimatologyInterpolator
 struct ClimatologyInterpolator{I<:OneDimensionalInterpolator}
     x::Vector{Float64}
     mask::BitMatrix
-    r::Matrix{I}
-    T::Matrix{I}
+    𝒻r::Matrix{I}
+    𝒻T::Matrix{I}
     A::Matrix{Float64}
     f::Matrix{Float64}
     n::Int64
@@ -41,29 +41,31 @@ function ClimatologyInterpolator(𝒞::AbstractVector{Climatology},
     end
     #construct interpolators
     x = collect(Float64, x)
-    @multiassign r, T = Matrix{interpolator}(undef, n, m)
+    @multiassign 𝒻r, 𝒻T = Matrix{interpolator}(undef, n, m)
     for i ∈ 1:n, j ∈ 1:m
         if mask[i,j]
-            r[i,j] = interpolator(x, map(𝒸->𝒸.r[i,j], 𝒞), boundaries())
-            T[i,j] = interpolator(x, map(𝒸->𝒸.T[i,j], 𝒞), boundaries())
+            𝒻r[i,j] = interpolator(x, map(𝒸->𝒸.r[i,j], 𝒞), boundaries())
+            𝒻T[i,j] = interpolator(x, map(𝒸->𝒸.T[i,j], 𝒞), boundaries())
         end
     end
     #construct unified interpolator
-    ClimatologyInterpolator(x, mask, r, T, A, f, n, m, length(𝒞))
+    ClimatologyInterpolator(x, mask, 𝒻r, 𝒻T, A, f, n, m, length(𝒞))
 end
 
 function (ℐ::ClimatologyInterpolator)(x)
     #pull out fields of struct
-    @unpack mask, r, T, A, f, n, m = ℐ
+    @unpack mask, 𝒻r, 𝒻T, A, f, n, m = ℐ
     #assume NaN until unmasked
-    @multiassign rₓ, Tₓ = fill(NaN, (n, m))
+    @multiassign r, T = fill(NaN, (n, m))
     #interpolate runoff and temperature at all points
     @inbounds for i ∈ 1:n, j ∈ 1:m
         if mask[i,j]
-            rₓ[i,j] = r[i,j](x)
-            Tₓ[i,j] = T[i,j](x)
+            #interpolate runoff
+            r[i,j] = 𝒻r[i,j](x)
+            #interpolate temperature
+            T[i,j] = 𝒻T[i,j](x)
         end
     end
     #construct a new Climatology
-    Climatology(mask, rₓ, Tₓ, A, f, n, m)
+    Climatology(mask, r, T, A, f, n, m)
 end
