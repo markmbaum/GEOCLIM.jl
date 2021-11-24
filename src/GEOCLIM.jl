@@ -162,7 +162,7 @@ end
 #====
 This is a general function to perform root finding with a
 ClimatologyInterpolator. The function will find the interpolation location x
-where 𝒻(ℐ(x)), a function applied to a Climatology, equals the value y.
+where 𝒻(x, ℐ(x)), a function applied to a Climatology, equals the value y.
 Typically the function 𝒻 would be a weathering function, but it could be
 anything at all.
 ====#
@@ -180,7 +180,7 @@ function findequilibrium(ℐ::ClimatologyInterpolator,
     an operation on a Climatology (like a weathering
     estimate) and the desired value of that operation.
     ===#
-    ℱ(𝓍) = 𝒻(ℐ(𝓍)) - 𝓎
+    ℱ(𝓍) = 𝒻(𝓍, ℐ(𝓍)) - 𝓎
     #the limits of the ClimatologyInterpolator's range
     𝓍₁, 𝓍₂ = ℐ.x[1], ℐ.x[end]
     #find the root with a bracketing method

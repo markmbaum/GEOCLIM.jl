@@ -8,7 +8,7 @@ datadir = "C:/Users/markm/Dropbox/Mark-and-Minmin/GEOCLIM"
 ##
 
 #broken up
-casedir = joinpath(datadir, "e.e12.E1850C4.T31_g37.1367_p-1.0_001_1000ppm_nooht")
+casedir = joinpath(datadir, "e.e12.E1850C4.T31_g37.1367_p-1.0_001_100ppm_nooht")
 C1 = Climatology(
     joinpath(casedir, "ROF_T31.nc"),
     "QRUNOFF",

@@ -6,6 +6,7 @@ struct ClimatologyInterpolator{I<:OneDimensionalInterpolator}
     r::Matrix{I}
     T::Matrix{I}
     A::Matrix{Float64}
+    f::Matrix{Float64}
     n::Int64
     m::Int64
     L::Int64
@@ -27,11 +28,15 @@ function ClimatologyInterpolator(𝒞::AbstractVector{Climatology},
     n, m = size(𝒞[1])
     mask = 𝒞[1].mask
     A = 𝒞[1].A
+    f = 𝒞[1].f
     for 𝒸 ∈ 𝒞
         #demand identical size
         @assert size(𝒸) == (n,m) "Climatologies must all be the same size"
-        #demand 
-        @assert all(𝒸.A .≈ A)
+        #demand identical cell areas
+        @assert all(𝒸.A .≈ A) "cell area grids must be identical"
+        #demand identical cell land fractions
+        @assert all(𝒸.f .≈ f) "cell land fraction grids must be identical"
+        #union of all masked cells
         mask .*= 𝒸.mask
     end
     #construct interpolators
@@ -44,12 +49,12 @@ function ClimatologyInterpolator(𝒞::AbstractVector{Climatology},
         end
     end
     #construct unified interpolator
-    ClimatologyInterpolator(x, mask, r, T, A, n, m, length(𝒞))
+    ClimatologyInterpolator(x, mask, r, T, A, f, n, m, length(𝒞))
 end
 
 function (ℐ::ClimatologyInterpolator)(x)
     #pull out fields of struct
-    @unpack mask, r, T, A, n, m = ℐ
+    @unpack mask, r, T, A, f, n, m = ℐ
     #assume NaN until unmasked
     @multiassign rₓ, Tₓ = fill(NaN, (n, m))
     #interpolate runoff and temperature at all points
@@ -60,5 +65,5 @@ function (ℐ::ClimatologyInterpolator)(x)
         end
     end
     #construct a new Climatology
-    Climatology(mask, rₓ, Tₓ, A, n, m)
+    Climatology(mask, rₓ, Tₓ, A, f, n, m)
 end
