@@ -25,84 +25,136 @@ include("Climatology.jl")
 include("ClimatologyInterpolator.jl")
 
 #------------------------------------------------------------------------------
-# weathering functions
+# weathering functions producing weathering per unit area
 
-#--------------------------------------
-# As implementated by Goddéris et al. 2017 (and in previous papers)
+export godderis, whak, mac
 
-export godderis
+#==============================================================================
+As implementated by
+  * Goddéris, Y. et al. Onset and ending of the late Palaeozoic ice age triggered by tectonically paced rock weathering. Nature Geosci 10, 382–386 (2017).
+  * Donnadieu, Y. et al. A GEOCLIM simulation of climatic and biogeochemical consequences of Pangea breakup: SIMULATION OF PANGEA BREAKUP. Geochem. Geophys. Geosyst. 7, n/a-n/a (2006).
+and in other, similar papers.
 
-godderis(r, T, A, k, Eₐ, T₀) = k*r*A*exp((Eₐ/𝐑)*(1/T₀ - 1/T))
+Arguments
+  r - runoff [m/s]
+  T - temperature [K]
+  k - calibration constant [mole/m^3]
+  Eₐ - activation energy [J/mole]
+  T₀ - reference temperature [K]
+==============================================================================#
+godderis(r, T, k, Eₐ, T₀) = k*r*exp((Eₐ/𝐑)*(1/T₀ - 1/T))
 
-function godderis(𝒸::Climatology, k, Eₐ, T₀)
-    @unpack mask, r, T, A, n, m = 𝒸
-    ΣW = 0.0
-    @inbounds for i ∈ 1:n, j ∈ 1:m
-        if mask[i,j]
-            ΣW += godderis(r[i,j], T[i,j], A[i,j], k, Eₐ, T₀)
-        end
-    end
-    return ΣW
-end
+#==============================================================================
+As implementated by
+  * Abbot, D. S., Cowan, N. B. & Ciesla, F. J. Indication of Insensitivity of Planetary Weathering Behavior and Habitable Zone to Surface Land Fraction. ApJ 756, 178 (2012).
+The important difference between this function and the godderis function is the
+pCO2 dependence. The temperature dependence is also written differently.
 
-#--------------------------------------
-# As implementated by Abbot et al. 2012 and Graham and Pierrehumbert 2020 
-# pCO2 dependence is added and the temperature dependence is slightly different from Goddéris (original geoclim)
+Arguments
+  r - runoff [m/s]
+  T - temperature [K]
+  pCO2 - carbon dioxide concentration [units must be same as pCO2₀]
+  k - calibration constant [mole/m^3]
+  Tₑ - scaling of temperature dependence [K]
+  T₀ - reference temperature [K]
+  pCO2₀ - reference carbon dioxide concentration [units must be same as pCO2]
+==============================================================================#
+whak(r, T, pCO2, k, Tₑ, T₀, pCO2₀, β=0.2) = k*r*exp((T - T₀)/Tₑ)*(pCO2/pCO2₀)^β
 
-export whak
+#==============================================================================
+As implementated by
+  * Maher, K. & Chamberlain, C. P. Hydrologic Regulation of Chemical Weathering and the Geologic Carbon Cycle. Science 343, 1502–1504 (2014).
+  * Graham, R. J. & Pierrehumbert, R. Thermodynamic and Energetic Limits on Continental Silicate Weathering Strongly Impact the Climate and Habitability of Wet, Rocky Worlds. ApJ 896, 115 (2020).
 
-function whak(r, T, A, pCO2, k, Tₑ, T₀, pCO2₀, β=0.2)
-    k*r*A*exp((T - T₀)/Tₑ)*(pCO2/pCO2₀)^β
-end
-
-function whak(𝒸::Climatology, pCO2, k, Tₑ, T₀, pCO2₀, β=0.2)
-    @unpack mask, r, T, A, n, m = 𝒸
-    ΣW = 0.0
-    @inbounds for i ∈ 1:n, j ∈ 1:m
-        if mask[i,j]
-            ΣW += whak(r[i,j], T[i,j], A[i,j], pCO2, k, Tₑ, T₀, pCO2₀, β)
-        end
-    end
-    return ΣW
-end
-
-#------------------------------------------------------------------------------
-# MAC, as implementated by Graham and Pierrehumbert 2020 
-# following Maher and Chamberlain 2014
-
-export mac
-
-# r input in m/s, convert to m/yr, convert result from mol/y back to mol/s
-function mac(r, T, A, pCO2, Tₑ, T₀, pCO2₀;
-             n=0.316, # Thermodynamic pCO2 dependence [-]
-             Λ=1.4e-3, # Thermodynamic coefficient for Ceq [-]
-             L=1, # Flow path length [m] 
-             ϕ=0.1, # Porosity [-]
-             ρ=12728, # Mineral mass to fluid volume ratio [kg m⁻³]
-             k₀=8.7e-6, # Reference rate constant [mol m⁻² yr⁻¹]
-             𝐀=100, # Specific surface area, not weathering surface area [m²kg⁻¹]
-             X=0.36, # Reactive mineral conc. in fresh rock [-]
-             tₛ=1e5, # Soil age [yr]
-             m=0.27, # Mineral molar mass [kg/mol]
-             μ=exp(2), # Scaling constant [-]
-             β=0.2) # pCO2 scaling [-]
+Arguments
+  r - runoff [m/s]
+  T - temperature [K]
+  pCO2 - carbon dioxide concentration [units must be same as pCO2₀]
+  Tₑ - scaling of temperature dependence [K]
+  T₀ - reference temperature [K]
+  pCO2₀ - reference carbon dioxide concentration [units must be same as pCO2]
+Paramters
+  n - thermodynamic pCO2 dependence [-]
+  Λ - thermodynamic coefficient for Ceq [-]
+  L - flow path length [m] 
+  ϕ - porosity [-]
+  ρ - mineral mass to fluid volume ratio [kg m⁻³]
+  k₀ - reference rate constant [mol m⁻² yr⁻¹]
+  𝐀 - specific surface area, not weathering surface area [m²kg⁻¹]
+  X - reactive mineral conc. in fresh rock [-]
+  tₛ - soil age [yr]
+  m - mineral molar mass [kg/mol]
+  μ - scaling constant [-]
+  β - pCO2 scaling [-]
+==============================================================================#
+function mac(r, T, pCO2, Tₑ, T₀, pCO2₀;
+             n=0.316,
+             Λ=1.4e-3,
+             L=1.0,
+             ϕ=0.1,
+             ρ=12728.0,
+             k₀=8.7e-6,
+             𝐀=1e2,
+             X=0.36,
+             tₛ=1e5,
+             m=0.27,
+             μ=exp(2),
+             β=0.2)
     #defined for convenience
     α = L*ϕ*ρ*𝐀*X*μ
     #equilibrium concentration
-    Ceq = 1e3*Λ*pCO2^n #conversion from mol/liter to mol/m3
-    #weathering
-    A*α*((k₀*exp((T - T₀)/Tₑ)*(pCO2/pCO2₀)^β)^-1 + m*𝐀*tₛ + α/(r*𝐲𝐫*Ceq))^-1/𝐲𝐫
+    Ceq = 1e3*Λ*(pCO2^n) #conversion from mol/liter to mol/m3
+    #temperature dependence
+    a = exp((T - T₀)/Tₑ)
+    #pCO2 dependence
+    b = (pCO2/pCO2₀)^β
+    #denominator
+    d = 1/(k₀*a*b) + m*𝐀*tₛ + α/(r*𝐲𝐫*Ceq)
+    #weathering per unit area 
+    (α/d)/𝐲𝐫
 end
 
-function mac(𝒸::Climatology, pCO2, Tₑ, T₀, pCO2₀)
-    @unpack mask, r, T, A, n, m = 𝒸
+#--------------------------------------
+#each total weathering function has a similar form, can generalize
+
+function totalweathering(𝒻w::F,
+                         𝒸::Climatology,
+                         args::Vararg{Real,N};
+                         kwargs...
+                         ) where {F<:Function, N}
+    #get climatology fields
+    @unpack mask, r, T, A, f, n, m = 𝒸
+    #package varargs
+    X = ntuple(n->Float64(args[n]), N)
+    #initialize the weathering sum
     ΣW = 0.0
+    #sum weathering at all grid cells
     @inbounds for i ∈ 1:n, j ∈ 1:m
         if mask[i,j]
-            ΣW += mac(r[i,j], T[i,j], A[i,j], pCO2, Tₑ, T₀, pCO2₀)
+            #area of cell [m^2]
+            Aᵢⱼ = A[i,j]
+            #land fraction of cell [-]
+            fᵢⱼ = f[i,j]
+            #total weathering in cell
+            ΣW += Aᵢⱼ*fᵢⱼ*𝒻w(r[i,j], T[i,j], X...; kwargs...)
         end
     end
     return ΣW
+end
+
+#--------------------------------------
+#total weathering wrappers for each method to be applied to a Climatology
+
+function godderis(𝒸::Climatology, k, Eₐ, Tₒ)
+    totalweathering(godderis, 𝒸, k, Eₐ, Tₒ)
+end
+
+function whak(𝒸::Climatology, pCO2, k, Tₑ, T₀, pCO2₀, β=0.2)
+    totalweathering(whak, 𝒸, pCO2, k, Tₑ, T₀, pCO2₀, β)
+end
+
+function mac(𝒸::Climatology, pCO2, Tₑ, T₀, pCO2₀; kwargs...)
+    totalweathering(mac, 𝒸, pCO2, Tₑ, T₀, pCO2₀; kwargs...)
 end
 
 #------------------------------------------------------------------------------
@@ -111,6 +163,8 @@ end
 This is a general function to perform root finding with a
 ClimatologyInterpolator. The function will find the interpolation location x
 where 𝒻(ℐ(x)), a function applied to a Climatology, equals the value y.
+Typically the function 𝒻 would be a weathering function, but it could be
+anything at all.
 ====#
 
 export findequilibrium
