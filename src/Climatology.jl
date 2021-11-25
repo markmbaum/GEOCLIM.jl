@@ -1,4 +1,4 @@
-export Climatology, landfraction
+export Climatology
 
 #area of a grid box rectangular in latitude and longitude
 # colatitude θ ∈ [0,π]
@@ -40,11 +40,6 @@ function Base.show(io::IO, 𝒸::Climatology)
 end
 
 Base.size(𝒸::Climatology) = (𝒸.n, 𝒸.m)
-
-function landfraction(𝒸::Climatology)
-    @unpack mask, A, f = 𝒸
-    sum(A[mask] .* f[mask])/sum(A)
-end
 
 function Climatology(fnr::String, #runoff file name
                      vr::String,  #runoff variable name
@@ -89,3 +84,28 @@ function Climatology(fnr::String, #runoff file name
     #construct
     Climatology(mask, r, T, A, f, n, m)
 end
+
+#--------------------------------------
+
+export landfraction
+export meanlandtemperature, meanlandrunoff
+
+landfraction(𝒸::Climatology) = sum(𝒸.f .* 𝒸.A)/sum(𝒸.A)
+
+function landmean(X::AbstractMatrix, 𝒸::Climatology)
+    @unpack mask, A, f, T, n, m = 𝒸
+    @assert size(X) == (n,m)
+    s = 0.0
+    a = 0.0
+    @inbounds for i ∈ 1:n, j ∈ 1:m
+        if mask[i,j]
+            s += A[i,j]*f[i,j]*X[i,j]
+            a += A[i,j]
+        end
+    end
+    return s/a
+end
+
+meanlandtemperature(𝒸::Climatology) = landmean(𝒸.T, 𝒸)
+
+meanlandrunoff(𝒸::Climatology) = landmean(𝒸.r, 𝒸)

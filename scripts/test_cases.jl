@@ -2,8 +2,8 @@ using GEOCLIM
 
 ##
 
-#datadir = "/Users/minminfu/Dropbox/Mark-and-Minmin/sample-climatologies"
-datadir = "C:/Users/markm/Dropbox/Mark-and-Minmin/sample-climatologies"
+#datadir = "/Users/minminfu/Dropbox/mark-minmin-paleoweathering/sample-climatologies"
+datadir = "C:/Users/markm/Dropbox/mark-minmin-paleoweathering/sample-climatologies"
 
 ##
 

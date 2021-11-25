@@ -2,7 +2,7 @@ using NetCDF
 
 ##
 
-ncdir = "C:/Users/markm/Dropbox/Mark-and-Minmin/continental-configuration/ensemble-configurations"
+ncdir = "C:/Users/markm/Dropbox/mark-minmin-paleoweathering/continental-configuration/ensemble-configurations"
 
 ##
 
@@ -13,7 +13,7 @@ cellarea(r, Δϕ, θ₁, θ₂) = (r^2)*abs(Δϕ)*abs(cos(θ₁) - cos(θ₂))
 
 ##
 
-fn = joinpath(ncdir, "topo_ens_n12_p-2_L30_0001.nc")
+fn = joinpath(ncdir, "topo_ens_n12_p-1_L30_0015.nc")
 lat = ncread(fn, "lat")
 lon = ncread(fn, "lon")
 topo = transpose(ncread(fn, "topo"));
