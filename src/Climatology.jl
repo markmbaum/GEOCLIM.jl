@@ -100,7 +100,7 @@ function landmean(X::AbstractMatrix, 𝒸::Climatology)
     @inbounds for i ∈ 1:n, j ∈ 1:m
         if mask[i,j]
             s += A[i,j]*f[i,j]*X[i,j]
-            a += A[i,j]
+            a += A[i,j]*f[i,j]
         end
     end
     return s/a
