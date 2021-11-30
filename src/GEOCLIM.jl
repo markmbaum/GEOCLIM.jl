@@ -19,6 +19,53 @@ const 𝐑ₑ = 6.371e6
 const 𝐲𝐫 = 31536000.0
 
 #------------------------------------------------------------------------------
+# general functions
+
+export cellarea, landfraction
+
+#area of a grid box rectangular in latitude and longitude
+# colatitude θ ∈ [0,π]
+# longitude ϕ ∈ [0,2π]
+cellarea(r, Δϕ, θ₁, θ₂) = (r^2)*abs(Δϕ*(cos(θ₁) - cos(θ₂)))
+
+#computes land fraction of a topography file
+#assumes latitude ∈ [-90, 90]°
+#assumes land is where topo > 0
+function landfraction(fn::String;
+					  latname::String="lat", #variable name
+					  lonname::String="lon", #variable name
+					  toponame::String="topo", #variable name
+					  cut::Real=Inf) #restrict to cells where -cutlat <= lat <= lat
+	#read variables from file
+	lat = ncread(fn, latname)
+	lon = ncread(fn, lonname)
+	topo = ncread(fn, toponame)
+	#transpose if needed
+	n, m = length(lat), length(lon)
+	if size(topo) == (m,n)
+		topo = collect(transpose(topo))
+	else
+		@assert size(topo) == (n,m)
+	end
+	#compute
+	L = 0.0
+	A = 0.0
+	@inbounds for i ∈ 1:n
+		if -cut <= lat[i] <= cut
+			#cell weight depends on latitude
+			w = cos(lat[i]*π/180)
+			for j ∈ 1:m
+				A += w
+				if topo[i,j] > 0
+					L += w
+				end
+			end
+		end
+	end
+	return L/A
+end
+
+#------------------------------------------------------------------------------
 # types
 
 include("Climatology.jl")

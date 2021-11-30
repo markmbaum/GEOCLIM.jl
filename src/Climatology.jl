@@ -1,33 +1,28 @@
 export Climatology
 
-#area of a grid box rectangular in latitude and longitude
-# colatitude θ ∈ [0,π]
-# longitude ϕ ∈ [0,2π]
-cellarea(r, Δϕ, θ₁, θ₂) = (r^2)*abs(Δϕ*(cos(θ₁) - cos(θ₂)))
-
-function readgrid(fn, v)::Matrix{Float64}
+function readgrid(fn, v)::Matrix
     #read temperature file
     X = ncread(fn, v)
     #squash third dimension if necessary
     if ndims(X) > 2
         X = dropdims(X, dims=3)
     end
-    size(X,1) > size(X,2) ? collect(Float64, transpose(X)) : collect(Float64, X)
+    size(X,1) > size(X,2) ? collect(transpose(X)) : X
 end
 
-struct Climatology
+struct Climatology{𝒯}
     mask::BitMatrix #land mask (1 for land, 0 otherwise)
-    r::Matrix{Float64} #cell runoff [m/s]
-    T::Matrix{Float64} #cell temperature [K]
-    A::Matrix{Float64} #cell area [m^2]
-    f::Matrix{Float64} #cell land fraction [-]
+    r::Matrix{𝒯} #cell runoff [m/s]
+    T::Matrix{𝒯} #cell temperature [K]
+    A::Matrix{𝒯} #cell area [m^2]
+    f::Matrix{𝒯} #cell land fraction [-]
     n::Int64 #number of rows/latitudes
     m::Int64 #number of columns/longitudes
 end
 
-function Base.show(io::IO, 𝒸::Climatology)
+function Base.show(io::IO, 𝒸::Climatology{𝒯}) where {𝒯}
     @unpack mask, r, T, A, f, n, m = 𝒸
-    println(io, "$n x $m Climatology")
+    println(io, "$n x $m Climatology{$𝒯}")
     Tmax = round(maximum(T[mask]), sigdigits=4)
     Tmin = round(minimum(T[mask]), sigdigits=4)
     println(io, "  temperature ∈ [$Tmin, $Tmax] K")
@@ -36,7 +31,7 @@ function Base.show(io::IO, 𝒸::Climatology)
     println(io, "  runoff ∈ [$rmin, $rmax] m/s")
     println(io, "  land fraction = $(landfraction(𝒸))")
     N = sum(mask)
-    print(io, "  $N/$(n*m) non-ocean cells")
+    print(io, "  $N land cells, $(n*m) total cells")
 end
 
 Base.size(𝒸::Climatology) = (𝒸.n, 𝒸.m)
@@ -52,7 +47,7 @@ function Climatology(fnr::String, #runoff file name
     #read runoff grid
     r = readgrid(fnr, vr)
     #nullify null values
-    @. r[r ≈ nullr] = NaN
+    @. r[r ≈ convert(eltype(r), nullr)] = NaN
     #replace negatives
     @. r[r < 0] = 0
     #apply conversion factor
@@ -70,26 +65,41 @@ function Climatology(fnr::String, #runoff file name
     @assert size(r) == size(T) == size(f)
     n, m = size(r)
 
+    #insist on the same types for arrays
+    𝒯 = promote_type(eltype.((r, T, f))...)
+    r, T, f = convert.(Matrix{𝒯}, (r, T, f))
+
     #make a mask from the non-NaN runoff values
     mask = @. r |> isnan |> !
+
+    #check that the mask agrees with land fractions
+    @inbounds for i ∈ 1:n, j ∈ 1:m
+        if mask[i,j]
+            #should have land in the cell
+            @assert 0 < f[i,j] <= 1 "Climatology mask indicates a land cell, but land fraction (f) is zero"
+        else
+            #should have ocean in the cell
+            @assert f[i,j] == 0 "Climatology mask indicates an ocean cell, but land fraction (f) is nonzero"
+        end
+    end
 
     #calculate cell areas, assuming equal spacing in lat & lon
     Δθ = π/n
     Δϕ = 2π/m
-    A = zeros(Float64, n, m)
+    A = zeros(𝒯, n, m)
     for i ∈ 1:n
         A[i,:] .= cellarea(𝐑ₑ, Δϕ, (i-1)*Δθ, i*Δθ)
     end
 
     #construct
-    Climatology(mask, r, T, A, f, n, m)
+    Climatology{𝒯}(mask, r, T, A, f, n, m)
 end
 
 #--------------------------------------
 
-export landfraction
 export meanlandtemperature, meanlandrunoff
 
+#already exported in main file
 landfraction(𝒸::Climatology) = sum(𝒸.f .* 𝒸.A)/sum(𝒸.A)
 
 function landmean(X::AbstractMatrix, 𝒸::Climatology)
@@ -99,8 +109,11 @@ function landmean(X::AbstractMatrix, 𝒸::Climatology)
     a = 0.0
     @inbounds for i ∈ 1:n, j ∈ 1:m
         if mask[i,j]
-            s += A[i,j]*f[i,j]*X[i,j]
-            a += A[i,j]*f[i,j]
+            #land area of cell
+            LA = A[i,j]*f[i,j]
+            #contributions to averaging
+            s += LA*X[i,j]
+            a += LA
         end
     end
     return s/a

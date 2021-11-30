@@ -17,6 +17,7 @@ fn = joinpath(ncdir, "topo_ens_n12_p-1_L30_0015.nc")
 lat = ncread(fn, "lat")
 lon = ncread(fn, "lon")
 topo = transpose(ncread(fn, "topo"));
+#topo[(lat .> 15) .| (lat .< -15),:] .= -1
 
 @assert diff(lon)[1] == diff(lat)[1]
 #grid spacing in radians
