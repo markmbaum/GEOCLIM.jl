@@ -92,6 +92,8 @@ Arguments
 godderis(r, T, k, Eₐ, T₀) = k*r*exp((Eₐ/𝐑)*(1/T₀ - 1/T))
 
 #==============================================================================
+Originally named after
+  * Walker, J. C. G., Hays, P. B. & Kasting, J. F. A negative feedback mechanism for the long-term stabilization of Earth’s surface temperature. J. Geophys. Res. 86, 9776 (1981).
 As implementated by
   * Abbot, D. S., Cowan, N. B. & Ciesla, F. J. Indication of Insensitivity of Planetary Weathering Behavior and Habitable Zone to Surface Land Fraction. ApJ 756, 178 (2012).
 The important difference between this function and the godderis function is the
