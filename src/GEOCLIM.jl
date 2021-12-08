@@ -32,10 +32,10 @@ cellarea(r, Δϕ, θ₁, θ₂) = (r^2)*abs(Δϕ*(cos(θ₁) - cos(θ₂)))
 #assumes latitude ∈ [-90, 90]°
 #assumes land is where topo > 0
 function landfraction(fn::String;
-					  latname::String="lat", #variable name
-					  lonname::String="lon", #variable name
-					  toponame::String="topo", #variable name
-					  cut::Real=Inf) #restrict to cells where -cutlat <= lat <= lat
+                      latname::String="lat", #variable name
+                      lonname::String="lon", #variable name
+                      toponame::String="topo", #variable name
+                      cut::Real=Inf) #restrict to cells where -cutlat <= lat <= lat
 	#read variables from file
 	lat = ncread(fn, latname)
 	lon = ncread(fn, lonname)
@@ -218,18 +218,20 @@ anything at all.
 
 export findequilibrium
 
-function findequilibrium(ℐ::ClimatologyInterpolator,
+function findequilibrium(ℐ::ClimatologyInterpolator{I,𝒯},
                          𝒻::F,
                          𝓎::Real;
                          tol::Float64=1e-4,
                          maxevals::Int=1000
-                         ) where {F}
+                         ) where {F,I,𝒯}
     #===
     The function to zero is the difference between
     an operation on a Climatology (like a weathering
     estimate) and the desired value of that operation.
+    The returned value is converted to the same numeric
+    type as the interpolator.
     ===#
-    ℱ(𝓍) = 𝒻(𝓍, ℐ(𝓍)) - 𝓎
+    ℱ(𝓍) = convert(𝒯, 𝒻(𝓍, ℐ(𝓍)) - 𝓎)
     #the limits of the ClimatologyInterpolator's range
     𝓍₁, 𝓍₂ = ℐ.x[1], ℐ.x[end]
     #find the root with a bracketing method

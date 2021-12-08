@@ -1,12 +1,52 @@
 using GEOCLIM
 using Test
 
-@testset "Climatology" begin
-    
+##
 
+#test climatology directories
+casedirs = [
+    joinpath("climatologies","e.e12.E1850C4.T31_g37.1367_p-2.0_001_10ppm_nooht"),
+    joinpath("climatologies","e.e12.E1850C4.T31_g37.1367_p-2.0_001_100ppm_nooht"),
+    joinpath("climatologies","e.e12.E1850C4.T31_g37.1367_p-2.0_001_1000ppm_nooht")
+]
+
+#read climatologies
+C = map(casedirs) do casedir
+    Climatology(
+        joinpath(casedir, "ROF_T31.nc"),
+        "QRUNOFF",
+        1e36,
+        1e-3,
+        joinpath(casedir, "TS.nc"),
+        "TS",
+        joinpath(casedir, "ROF_T31_landfrac.nc"),
+        "landfrac"
+    )
 end
 
-@testset "GEOCLIM" begin
-    #just a dummy test for now, until specific test files are ready
-    @test 1 > 0
+#co2 concentrations
+co2 = [1e1, 1e2, 1e3]
+
+##
+
+#land fractions should be close to 30 %
+@test all(0.29 .< landfraction.(C) .< 0.31)
+
+#basic check on total weathering function ranges
+@testset "Total Weathering" begin
+    @test all(1e4 .< godderis.(C, 0.043, 48200, 288.15) .< 2e5)
+    @test all(1e4 .< whak.(C, co2*1e-6, 0.043, 11.1, 288.15, 285e-6) .< 2e5)
+    @test all(1e4 .< mac.(C, co2*1e-6, 11.1, 288.15, 285e-6) .< 2e5)
+end
+
+#test some interpolation
+I = ClimatologyInterpolator(C, log10.(co2))
+
+@testset "Equlibrium CO2" begin
+    f₁(_,c) = godderis(c, 0.043, 48200, 288.15)
+    @test 1.5 < findequilibrium(I, f₁, 5e4) < 2.5
+    f₂(x,c) = whak(c, exp10(x)*1e-6, 0.043, 11.1, 288.15, 285e-6)
+    @test 1.5 < findequilibrium(I, f₂, 5e4) < 2.5
+    f₃(x,c) = mac(c, exp10(x)*1e-6, 11.1, 288.15, 285e-6)
+    @test 1.5 < findequilibrium(I, f₃, 5e4) < 2.5
 end

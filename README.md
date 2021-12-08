@@ -9,8 +9,8 @@
 
 This module replicates some features of the [GEOCLIM](https://geoclimmodel.wordpress.com/) model, originally written in Fortran, but now in Julia to make them easier to use. It also extends the original weathering equations, now including
 * WHAK (named after [Walker, Hayes & Kasting](http://doi.wiley.com/10.1029/JC086iC10p09776))
-	1. Ignoring direct dependence on pCO2, as seen in [Goddéris et al.](https://doi.org/10.1038/ngeo2931), [Donnadieu et al.](https://doi.org/10.1029/2006GC001278), and elsewhere)
-	2. Including direct pCO2 dependence, as seen in [Abbot et al.](https://doi.org/10.1088/0004-637X/756/2/178) and elsewhere)
+	1. Ignoring direct dependence on pCO2, as seen in [Goddéris et al.](https://doi.org/10.1038/ngeo2931), [Donnadieu et al.](https://doi.org/10.1029/2006GC001278), and elsewhere
+	2. Including direct pCO2 dependence, as seen in [Abbot et al.](https://doi.org/10.1088/0004-637X/756/2/178) and elsewhere
 * MAC (named after [Maher & Chamberlain](https://doi.org/10.1126/science.1250770)) as seen in [Graham & Pierrehumbert](https://doi.org/10.3847/1538-4357/ab9362)
 
 ------
