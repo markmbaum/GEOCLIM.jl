@@ -16,6 +16,7 @@ struct Climatology{𝒯}
     T::Matrix{𝒯} #cell temperature [K]
     A::Matrix{𝒯} #cell area [m^2]
     f::Matrix{𝒯} #cell land fraction [-]
+    lat::Vector{𝒯} #cell latitudes
     n::Int64 #number of rows/latitudes
     m::Int64 #number of columns/longitudes
 end
@@ -43,7 +44,9 @@ function Climatology(fnr::String, #runoff file name
                      fnT::String, #temperature file name
                      vT::String,  #temperature variable name
                      fnf::String, #land fraction file name
-                     vf::String)  #land fraction variable name
+                     vf::String; #land fraction variable name
+                     fnlat::String="", #empty will use runoff file
+                     latname::String="lat")
     #read runoff grid
     r = readgrid(fnr, vr)
     #nullify null values
@@ -52,6 +55,10 @@ function Climatology(fnr::String, #runoff file name
     @. r[r < 0] = 0
     #apply conversion factor
     r .*= convr
+
+    #get cell coordinates
+    fnlat = isempty(fnlat) ? fnr : fnlat
+    lat = collect(eltype(r), ncread(fnlat, latname))
 
     #read temperature grid
     T = readgrid(fnT, vT)
@@ -65,7 +72,7 @@ function Climatology(fnr::String, #runoff file name
     @assert size(r) == size(T) == size(f)
     n, m = size(r)
 
-    #insist on the same types for arrays
+    #insist on the same types for grids
     𝒯 = promote_type(eltype.((r, T, f))...)
     r, T, f = convert.(Matrix{𝒯}, (r, T, f))
 
@@ -83,32 +90,57 @@ function Climatology(fnr::String, #runoff file name
         end
     end
 
-    #calculate cell areas, assuming equal spacing in lat & lon
-    Δθ = π/n
-    Δϕ = 2π/m
+    #cell areas
     A = zeros(𝒯, n, m)
-    for i ∈ 1:n
-        A[i,:] .= cellarea(𝐑ₑ, Δϕ, (i-1)*Δθ, i*Δθ)
+    Δϕ = 2π/m
+    θₘ = (π/180)*(lat[2:end] .+ lat[1:end-1])/2 .+ π/2
+    println(θₘ)
+    a₁ = cellarea(𝐑ₑ, Δϕ, 0, θₘ[1])
+    aₙ = cellarea(𝐑ₑ, Δϕ, θₘ[end], π)
+    for j ∈ 1:m
+        A[1,j] = a₁
+        A[n,j] = aₙ
+    end
+    for i ∈ 2:n-1
+        aᵢ = cellarea(𝐑ₑ, Δϕ, θₘ[i-1], θₘ[i])
+        for j ∈ 1:m
+            A[i,j] = aᵢ
+        end
     end
 
     #construct
-    Climatology{𝒯}(mask, r, T, A, f, n, m)
+    Climatology{𝒯}(mask, r, T, A, f, lat, n, m)
 end
 
 #--------------------------------------
 
-export meanlandtemperature, meanlandrunoff
+export landfraction, meanlandtemperature, meanlandrunoff
 
 #already exported in main file
-landfraction(𝒸::Climatology) = sum(𝒸.f .* 𝒸.A)/sum(𝒸.A)
+#landfraction(𝒸::Climatology) = sum(𝒸.f .* 𝒸.A)/sum(𝒸.A)
 
-function landmean(X::AbstractMatrix, 𝒸::Climatology)
-    @unpack mask, A, f, T, n, m = 𝒸
-    @assert size(X) == (n,m)
-    s = 0.0
-    a = 0.0
+function landfraction(𝒸::Climatology{𝒯}; cut::Real=Inf) where {𝒯}
+    @unpack A, f, lat, n, m = 𝒸
+    @assert cut >= 0
+    L = zero(𝒯)
+    S = zero(𝒯)
     @inbounds for i ∈ 1:n, j ∈ 1:m
-        if mask[i,j]
+        if -cut <= lat[i] <= cut
+            L += A[i,j]*f[i,j]
+            S += A[i,j]
+        end
+    end
+    return L/S
+end
+
+function landmean(X::AbstractMatrix{𝒯}, 𝒸::Climatology{𝒯}, cut::Real=Inf) where {𝒯}
+    @unpack mask, A, f, lat, T, n, m = 𝒸
+    @assert size(X) == (n,m)
+    @assert cut > 0
+    s = zero(𝒯)
+    a = zero(𝒯)
+    @inbounds for i ∈ 1:n, j ∈ 1:m
+        if mask[i,j] & (-cut <= lat[i] <= cut)
             #land area of cell
             LA = A[i,j]*f[i,j]
             #contributions to averaging
@@ -119,6 +151,6 @@ function landmean(X::AbstractMatrix, 𝒸::Climatology)
     return s/a
 end
 
-meanlandtemperature(𝒸::Climatology) = landmean(𝒸.T, 𝒸)
+meanlandtemperature(𝒸::Climatology; cut::Real=Inf) = landmean(𝒸.T, 𝒸, cut)
 
-meanlandrunoff(𝒸::Climatology) = landmean(𝒸.r, 𝒸)
+meanlandrunoff(𝒸::Climatology; cut::Real=Inf) = landmean(𝒸.r, 𝒸, cut)
