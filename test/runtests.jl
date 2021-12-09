@@ -27,7 +27,16 @@ end
 #co2 concentrations for each climatology
 co2 = [1e1, 1e2, 1e3]
 
+#test topography directories
+topos = [
+    joinpath("topographies","topo_ens_n12_p-1_L30_0001.nc"),
+    joinpath("topographies","topo_ens_n12_p-1_L30_0002.nc"),
+    joinpath("topographies","topo_ens_n12_p-1_L30_0003.nc")
+]
+
 ##
+
+@test all(0.29 .< landfraction.(topos) .< 0.31)
 
 @testset "Land Quantities" begin
     #land fractions should be close to 30 %
