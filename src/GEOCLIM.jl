@@ -221,9 +221,9 @@ export findequilibrium
 function findequilibrium(ℐ::ClimatologyInterpolator{I,𝒯},
                          𝒻::F,
                          𝓎::Real;
-                         tol::Float64=1e-4,
+                         tol::Real=1e-4,
                          maxevals::Int=1000
-                         ) where {F,I,𝒯}
+                         ) where {I,𝒯,F}
     #===
     The function to zero is the difference between
     an operation on a Climatology (like a weathering
@@ -239,10 +239,10 @@ function findequilibrium(ℐ::ClimatologyInterpolator{I,𝒯},
         ℱ,
         (𝓍₁,𝓍₂),
         Roots.Brent(),
-        atol=tol,
-        rtol=tol,
-        xatol=tol,
-        xrtol=tol,
+        atol=convert(𝒯, tol),
+        rtol=convert(𝒯, tol),
+        xatol=convert(𝒯, tol),
+        xrtol=convert(𝒯, tol),
         maxevals=maxevals
     )
 end
