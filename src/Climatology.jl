@@ -94,7 +94,6 @@ function Climatology(fnr::String, #runoff file name
     A = zeros(𝒯, n, m)
     Δϕ = 2π/m
     θₘ = (π/180)*(lat[2:end] .+ lat[1:end-1])/2 .+ π/2
-    println(θₘ)
     a₁ = cellarea(𝐑ₑ, Δϕ, 0, θₘ[1])
     aₙ = cellarea(𝐑ₑ, Δϕ, θₘ[end], π)
     for j ∈ 1:m

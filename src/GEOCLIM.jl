@@ -36,33 +36,33 @@ function landfraction(fn::String;
                       lonname::String="lon", #variable name
                       toponame::String="topo", #variable name
                       cut::Real=Inf) #restrict to cells where -cutlat <= lat <= lat
-	#read variables from file
-	lat = ncread(fn, latname)
-	lon = ncread(fn, lonname)
-	topo = ncread(fn, toponame)
-	#transpose if needed
-	n, m = length(lat), length(lon)
-	if size(topo) == (m,n)
-		topo = collect(transpose(topo))
-	else
-		@assert size(topo) == (n,m)
-	end
-	#compute
-	L = 0.0
-	A = 0.0
-	@inbounds for i ∈ 1:n
-		if -cut <= lat[i] <= cut
-			#cell weight depends on latitude
-			w = cos(lat[i]*π/180)
-			for j ∈ 1:m
-				A += w
-				if topo[i,j] > 0
-					L += w
-				end
-			end
-		end
-	end
-	return L/A
+    #read variables from file
+    lat = ncread(fn, latname)
+    lon = ncread(fn, lonname)
+    topo = ncread(fn, toponame)
+    #transpose if needed
+    n, m = length(lat), length(lon)
+    if size(topo) == (m,n)
+        topo = collect(transpose(topo))
+    else
+        @assert size(topo) == (n,m)
+    end
+    #compute
+    L = 0.0
+    A = 0.0
+    @inbounds for i ∈ 1:n
+        if -cut <= lat[i] <= cut
+            #cell weight depends on latitude
+            w = cos(lat[i]*π/180)
+            for j ∈ 1:m
+                A += w
+                if topo[i,j] > 0
+                    L += w
+                end
+            end
+        end
+    end
+    return L/A
 end
 
 #------------------------------------------------------------------------------
