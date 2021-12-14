@@ -24,6 +24,9 @@ C = map(casedirs) do casedir
     )
 end
 
+#print one of them
+println(C[1])
+
 #co2 concentrations for each climatology
 co2 = [1e1, 1e2, 1e3]
 
