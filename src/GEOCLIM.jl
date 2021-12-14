@@ -173,7 +173,7 @@ function totalweathering(𝒻w::F,
                          ) where {F<:Function, N}
     #get climatology fields
     @unpack mask, r, T, A, f, n, m = 𝒸
-    #package varargs
+    #repackage varargs
     X = ntuple(n->Float64(args[n]), N)
     #initialize the weathering sum
     ΣW = 0.0
