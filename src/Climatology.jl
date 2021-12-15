@@ -113,7 +113,7 @@ end
 
 #--------------------------------------
 
-export landfraction, meanlandtemperature, meanlandrunoff
+export landfraction, meanlandtemperature, meanlandrunoff, totalandrunoff
 
 #already exported in main file
 #landfraction(𝒸::Climatology) = sum(𝒸.f .* 𝒸.A)/sum(𝒸.A)
@@ -150,6 +150,25 @@ function landmean(X::AbstractMatrix{𝒯}, 𝒸::Climatology{𝒯}, cut::Real=In
     return s/a
 end
 
+function landsum(X::AbstractMatrix{𝒯}, 𝒸::Climatology{𝒯}, cut::Real=Inf) where {𝒯}
+    @unpack mask, A, f, lat, T, n, m = 𝒸
+    @assert size(X) == (n,m)
+    @assert cut > 0
+    s = zero(𝒯)
+    a = zero(𝒯)
+    @inbounds for i ∈ 1:n, j ∈ 1:m
+        if mask[i,j] & (-cut <= lat[i] <= cut)
+            #land area of cell
+            LA = A[i,j]*f[i,j]
+            #contributions to sum
+            s += LA*X[i,j]
+        end
+    end
+    return s
+end
+
 meanlandtemperature(𝒸::Climatology; cut::Real=Inf) = landmean(𝒸.T, 𝒸, cut)
 
 meanlandrunoff(𝒸::Climatology; cut::Real=Inf) = landmean(𝒸.r, 𝒸, cut)
+
+totalandrunoff(𝒸::Climatology; cut::Real=Inf) = landsum(𝒸.r, 𝒸, cut)
