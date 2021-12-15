@@ -2,6 +2,7 @@
 
 [![Build Status](https://github.com/markmbaum/GEOCLIM.jl/workflows/CI/badge.svg)](https://github.com/markmbaum/GEOCLIM.jl/actions)
 [![Coverage](https://codecov.io/gh/markmbaum/GEOCLIM.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/markmbaum/GEOCLIM.jl)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5784232.svg)](https://doi.org/10.5281/zenodo.5784232)
 
 ## Global Silicate Weathering Estimation
 
