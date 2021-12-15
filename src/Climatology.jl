@@ -113,7 +113,7 @@ end
 
 #--------------------------------------
 
-export landfraction, meanlandtemperature, meanlandrunoff, totalandrunoff
+export landfraction, meanlandtemperature, meanlandrunoff, totallandrunoff
 
 #already exported in main file
 #landfraction(𝒸::Climatology) = sum(𝒸.f .* 𝒸.A)/sum(𝒸.A)
