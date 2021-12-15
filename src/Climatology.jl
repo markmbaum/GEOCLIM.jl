@@ -133,7 +133,7 @@ function landfraction(𝒸::Climatology{𝒯}; cut::Real=Inf) where {𝒯}
 end
 
 function landmean(X::AbstractMatrix{𝒯}, 𝒸::Climatology{𝒯}, cut::Real=Inf) where {𝒯}
-    @unpack mask, A, f, lat, T, n, m = 𝒸
+    @unpack mask, A, f, lat, n, m = 𝒸
     @assert size(X) == (n,m)
     @assert cut > 0
     s = zero(𝒯)
@@ -151,16 +151,15 @@ function landmean(X::AbstractMatrix{𝒯}, 𝒸::Climatology{𝒯}, cut::Real=In
 end
 
 function landsum(X::AbstractMatrix{𝒯}, 𝒸::Climatology{𝒯}, cut::Real=Inf) where {𝒯}
-    @unpack mask, A, f, lat, T, n, m = 𝒸
+    @unpack mask, A, f, lat, n, m = 𝒸
     @assert size(X) == (n,m)
     @assert cut > 0
     s = zero(𝒯)
-    a = zero(𝒯)
     @inbounds for i ∈ 1:n, j ∈ 1:m
         if mask[i,j] & (-cut <= lat[i] <= cut)
             #land area of cell
             LA = A[i,j]*f[i,j]
-            #contributions to sum
+            #contribution to sum
             s += LA*X[i,j]
         end
     end
@@ -171,4 +170,4 @@ meanlandtemperature(𝒸::Climatology; cut::Real=Inf) = landmean(𝒸.T, 𝒸, c
 
 meanlandrunoff(𝒸::Climatology; cut::Real=Inf) = landmean(𝒸.r, 𝒸, cut)
 
-totalandrunoff(𝒸::Climatology; cut::Real=Inf) = landsum(𝒸.r, 𝒸, cut)
+totallandrunoff(𝒸::Climatology; cut::Real=Inf) = landsum(𝒸.r, 𝒸, cut)

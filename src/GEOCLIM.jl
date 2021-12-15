@@ -129,7 +129,7 @@ Paramters
   ϕ - porosity [-]
   ρ - mineral mass to fluid volume ratio [kg m⁻³]
   k₀ - reference rate constant [mol m⁻² yr⁻¹]
-  𝐀 - specific surface area, not weathering surface area [m²kg⁻¹]
+  𝐀 - specific surface area (not weathering surface area) [m²kg⁻¹]
   X - reactive mineral conc. in fresh rock [-]
   tₛ - soil age [yr]
   m - mineral molar mass [kg/mol]
