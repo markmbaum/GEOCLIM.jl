@@ -22,6 +22,8 @@ The module won't be put in Julia's general registry. If you want to easily insta
 julia> ] add https://github.com/markmbaum/GEOCLIM.jl
 ```
 
+It's recommended that you do so in an [environment](https://pkgdocs.julialang.org/v1.2/environments/).
+
 ------
 ### Usage
 

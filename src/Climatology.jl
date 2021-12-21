@@ -35,7 +35,12 @@ function Base.show(io::IO, 𝒸::Climatology{𝒯}) where {𝒯}
     print(io, "  $N land cells, $(n*m) total cells")
 end
 
-Base.size(𝒸::Climatology) = (𝒸.n, 𝒸.m)
+Base.size(𝒸::Climatology)::NTuple{2,Int64} = (𝒸.n, 𝒸.m)
+
+function Base.size(𝒸::Climatology, dim::Int)::Int64
+    @assert 1 <= dim <= 2 "Climatology has only two dimensions"
+    size(𝒸)[dim]
+end
 
 function Climatology(fnr::String, #runoff file name
                      vr::String,  #runoff variable name
