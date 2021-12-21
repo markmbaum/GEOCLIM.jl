@@ -46,18 +46,18 @@ There are three weathering functions corresponding to the formulations listed ab
              
 where `r` is runoff and `T` is temperature. You can find explanations of all the other arguments and their units in the [main source file](https://github.com/markmbaum/GEOCLIM.jl/blob/main/src/GEOCLIM.jl) or the referenced papers. These primary functions have no type restrictions.
 
-The rest of the package is focused on two dimensional grids of results from GCM simulations and is structured around the `Climatology` type. Read results by calling the constructor
+The rest of the package is focused on two dimensional grids of results from GCM simulations and is structured around the `Climatology` type. Read GCM results into a `Climatology` by calling the constructor
 ```
-Climatology(fnr::String, #runoff file name
-            vr::String,  #runoff variable name
-            nullr::Real, #runoff empty/fill value
-            convr::Real, #runoff conversion factor
-            fnT::String, #temperature file name
-            vT::String,  #temperature variable name
-            fnf::String, #land fraction file name
-            vf::String;  #land fraction variable name
-            fnlat::String="", #empty will use runoff file
-            latname::String="lat") #name of latitude variable
+Climatology(fnr,   #runoff file name
+            vr,    #runoff variable name
+            nullr, #runoff value interpreted as null
+            convr, #conversion factor applied to runoff values
+            fnT,   #temperature file name
+            vT,    #temperature variable name
+            fnf,   #land fraction file name
+            vf;    #land fraction variable name
+            fnlat="",      #file where cell latitudes can be found (empty will use the runoff file)
+            latname="lat") #name of latitude vector
 ```
 where the file names point to NetCDF files.
 
