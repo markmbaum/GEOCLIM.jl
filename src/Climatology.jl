@@ -1,13 +1,18 @@
 export Climatology
 
+checktranspose(A::Matrix)::Matrix = (size(A,1) > size(A,2)) ? collect(transpose(A)) : A
+
 function readgrid(fn, v)::Matrix
     #read temperature file
     X = ncread(fn, v)
     #squash third dimension if necessary
-    if ndims(X) > 2
-        X = dropdims(X, dims=3)
+    d = ndims(X)
+    if d == 3
+        return checktranspose(dropdims(X, dims=3))
+    elseif d == 2
+        return checktranspose(X)
     end
-    size(X,1) > size(X,2) ? collect(transpose(X)) : X
+    error("unusual number of dimensions ($d) found in file $fn, variable $v")
 end
 
 struct Climatology{𝒯}
@@ -73,13 +78,14 @@ function Climatology(fnr::String, #runoff file name
     #discard nonsense
     @. f[(f < 0) | (f > 1)] = 0
 
-    #demand everything is the same size
-    @assert size(r) == size(T) == size(f)
-    n, m = size(r)
-
     #insist on the same types for grids
     𝒯 = promote_type(eltype.((r, T, f))...)
     r, T, f = convert.(Matrix{𝒯}, (r, T, f))
+
+    #demand everything is the same size
+    @assert size(r) == size(T) == size(f) "Climatology arrays must have the same size/shape"
+    n, m = size(r)
+    @assert length(lat) == n "latitude vector length ($(length(lat))) must match number of Climatology rows ($n)"
 
     #make a mask from the non-NaN runoff values
     mask = @. r |> isnan |> !
@@ -118,49 +124,51 @@ end
 
 #--------------------------------------
 
-export landfraction, meanlandtemperature, meanlandrunoff, totallandrunoff
+export landfraction
+export meanlandtemperature
+export meanlandrunoff, totallandrunoff
+export meanlandlatitude
 
-#already exported in main file
-#landfraction(𝒸::Climatology) = sum(𝒸.f .* 𝒸.A)/sum(𝒸.A)
+checkcut(cut) = @assert cut >= 0 "latitude cutoff must be positive"
+
+checksize(n, m, X) = @assert size(X) == (n,m) "size mismatch between array and Climatology"
 
 function landfraction(𝒸::Climatology{𝒯}; cut::Real=Inf) where {𝒯}
     @unpack A, f, lat, n, m = 𝒸
-    @assert cut >= 0
-    L = zero(𝒯)
-    S = zero(𝒯)
+    checkcut(cut)
+    @multiassign num, den = zero(𝒯)
     @inbounds for i ∈ 1:n, j ∈ 1:m
         if -cut <= lat[i] <= cut
-            L += A[i,j]*f[i,j]
-            S += A[i,j]
+            num += A[i,j]*f[i,j]
+            den += A[i,j]
         end
     end
-    return L/S
+    return num/den
 end
 
 function landmean(X::AbstractMatrix{𝒯}, 𝒸::Climatology{𝒯}, cut::Real=Inf) where {𝒯}
     @unpack mask, A, f, lat, n, m = 𝒸
-    @assert size(X) == (n,m)
-    @assert cut > 0
-    s = zero(𝒯)
-    a = zero(𝒯)
-    @inbounds for i ∈ 1:n, j ∈ 1:m
+    checksize(n, m, X)
+    checkcut(cut)
+    @multiassign num, den = zero(𝒯)
+    for i ∈ 1:n, j ∈ 1:m
         if mask[i,j] & (-cut <= lat[i] <= cut)
             #land area of cell
             LA = A[i,j]*f[i,j]
             #contributions to averaging
-            s += LA*X[i,j]
-            a += LA
+            num += LA*X[i,j]
+            den += LA
         end
     end
-    return s/a
+    return num/den
 end
 
 function landsum(X::AbstractMatrix{𝒯}, 𝒸::Climatology{𝒯}, cut::Real=Inf) where {𝒯}
     @unpack mask, A, f, lat, n, m = 𝒸
-    @assert size(X) == (n,m)
-    @assert cut > 0
+    checksize(n, m, X)
+    checkcut(cut)
     s = zero(𝒯)
-    @inbounds for i ∈ 1:n, j ∈ 1:m
+    for i ∈ 1:n, j ∈ 1:m
         if mask[i,j] & (-cut <= lat[i] <= cut)
             #land area of cell
             LA = A[i,j]*f[i,j]
@@ -176,3 +184,5 @@ meanlandtemperature(𝒸::Climatology; cut::Real=Inf) = landmean(𝒸.T, 𝒸, c
 meanlandrunoff(𝒸::Climatology; cut::Real=Inf) = landmean(𝒸.r, 𝒸, cut)
 
 totallandrunoff(𝒸::Climatology; cut::Real=Inf) = landsum(𝒸.r, 𝒸, cut)
+
+meanlandlatitude(𝒸::Climatology) = landmean(repeat(𝒸.lat, 1, 𝒸.m), 𝒸)
