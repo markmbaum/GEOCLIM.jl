@@ -56,6 +56,9 @@ end
     @test all(1e4 .< mac.(C, co2*1e-6, 11.1, 288.15, 285e-6) .< 2e5)
 end
 
+#check the ocean distance function
+@test all(0.0 .< meanoceandistance.(C)/6.371e6 .< 0.5)
+
 #test some interpolation
 I = ClimatologyInterpolator(C, log10.(co2))
 

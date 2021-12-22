@@ -197,17 +197,24 @@ function sph2cart(θ::T, ϕ::T) where {T}
 end
 
 function arclength(c₁::SVector{3,T}, c₂::SVector{3,T}) where {T}
-    (c₁ == c₂) | (c₁ == c₂) && return zero(T)
-    acos(c₁ ⋅ c₂)
+    d = c₁ ⋅ c₂
+    if d > one(T)
+        return zero(T)
+    elseif d < -one(T)
+        return convert(T,π)
+    end
+    acos(d)
 end
 
-function meanoceandistance(𝒸::Climatology{𝒯}; cut::Real=Inf) where {𝒯}
+function meanoceandistance(𝒸::Climatology{𝒯}; cut::Real=Inf, R::Real=𝐑ₑ) where {𝒯}
     @unpack mask, lat, n, m = 𝒸
     checkcut(cut)
+    @assert any(mask .== 0) "no ocean cells, can't compute distances to ocean"
     #we assume longitude values cells are evenly spaced, as they ought to be
-    ϕ = collect(𝒯, LinRange(0, 2π, m))
+    Δϕ = 2π/m
+    ϕ = collect(𝒯, LinRange(Δϕ/2, 2π - Δϕ/2, m))
     #convert the latitude values to radians
-    θ = collect(𝒯, -lat*(π/180) .+ π/2)
+    θ = collect(𝒯, lat*(π/180) .+ π/2)
     #create a grid of cartesian coordinates for each cell
     C = Matrix{SVector{3,𝒯}}(undef, n, m)
     for i ∈ 1:n, j ∈ 1:m
@@ -215,21 +222,26 @@ function meanoceandistance(𝒸::Climatology{𝒯}; cut::Real=Inf) where {𝒯}
     end
     #mean arclength from land cells to ocean cells
     ℒ = zero(𝒯)
+    count::Int64 = 0
     @inbounds for i ∈ 1:n, j ∈ 1:m
+        #check if its a land cell withing the desired latitude band
         if mask[i,j] & (-cut <= lat[i] <= cut)
             #find the minimum distance to the ocean for cell i,j
             𝓁 = Inf
+            cᵢⱼ = C[i,j]
             for k ∈ 1:n, l ∈ 1:m
-                if (k != i) & (j != l) #don't check a cell against itself
-                    𝓁ᵢⱼ = arclength(C[i,j], C[j,k])
-                    if 𝓁ᵢⱼ < 𝓁
-                        𝓁 = 𝓁ᵢⱼ
+                #cell k,l must be ocean
+                if !mask[k,l] & ((i != k) | (j != l)) #don't check a cell against itself
+                    𝓁ₖₗ = arclength(cᵢⱼ, C[k,l])
+                    if 𝓁ₖₗ < 𝓁
+                        𝓁 = 𝓁ₖₗ
                     end
                 end
             end
+            count += 1
             ℒ += 𝓁
         end
     end
-    #normalize by the grid size
-    ℒ/(n*m)
+    #normalize by cell count and convert from radians to meters
+    R*ℒ/count
 end
