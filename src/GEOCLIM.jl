@@ -5,6 +5,8 @@ using UnPack
 using MultiAssign
 using Roots
 using BasicInterpolators
+using StaticArrays: SVector
+using LinearAlgebra: ⋅ #dot product
 
 #------------------------------------------------------------------------------
 # immutable physical constants

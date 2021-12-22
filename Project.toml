@@ -5,9 +5,11 @@ version = "0.1.5"
 
 [deps]
 BasicInterpolators = "26cce99e-4866-4b6d-ab74-862489e035e0"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 MultiAssign = "5e2c8b86-4afa-40de-bd09-d9d381e5dc2b"
 NetCDF = "30363a11-5582-574a-97bb-aa9a979735b9"
 Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
 [compat]

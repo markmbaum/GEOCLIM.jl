@@ -151,7 +151,7 @@ function landmean(X::AbstractMatrix{𝒯}, 𝒸::Climatology{𝒯}, cut::Real=In
     checksize(n, m, X)
     checkcut(cut)
     @multiassign num, den = zero(𝒯)
-    for i ∈ 1:n, j ∈ 1:m
+    @inbounds for i ∈ 1:n, j ∈ 1:m
         if mask[i,j] & (-cut <= lat[i] <= cut)
             #land area of cell
             LA = A[i,j]*f[i,j]
@@ -168,7 +168,7 @@ function landsum(X::AbstractMatrix{𝒯}, 𝒸::Climatology{𝒯}, cut::Real=Inf
     checksize(n, m, X)
     checkcut(cut)
     s = zero(𝒯)
-    for i ∈ 1:n, j ∈ 1:m
+    @inbounds for i ∈ 1:n, j ∈ 1:m
         if mask[i,j] & (-cut <= lat[i] <= cut)
             #land area of cell
             LA = A[i,j]*f[i,j]
@@ -186,3 +186,50 @@ meanlandrunoff(𝒸::Climatology; cut::Real=Inf) = landmean(𝒸.r, 𝒸, cut)
 totallandrunoff(𝒸::Climatology; cut::Real=Inf) = landsum(𝒸.r, 𝒸, cut)
 
 meanlandlatitude(𝒸::Climatology) = landmean(repeat(𝒸.lat, 1, 𝒸.m), 𝒸)
+
+#--------------------------------------
+export meanoceandistance
+
+function sph2cart(θ::T, ϕ::T) where {T}
+    sₜ, cₜ = sincos(θ)
+    sₚ, cₚ = sincos(ϕ)
+    return SVector{3,T}(sₜ*cₚ, sₜ*sₚ, cₜ)
+end
+
+function arclength(c₁::SVector{3,T}, c₂::SVector{3,T}) where {T}
+    (c₁ == c₂) | (c₁ == c₂) && return zero(T)
+    acos(c₁ ⋅ c₂)
+end
+
+function meanoceandistance(𝒸::Climatology{𝒯}; cut::Real=Inf) where {𝒯}
+    @unpack mask, lat, n, m = 𝒸
+    checkcut(cut)
+    #we assume longitude values cells are evenly spaced, as they ought to be
+    ϕ = collect(𝒯, LinRange(0, 2π, m))
+    #convert the latitude values to radians
+    θ = collect(𝒯, -lat*(π/180) .+ π/2)
+    #create a grid of cartesian coordinates for each cell
+    C = Matrix{SVector{3,𝒯}}(undef, n, m)
+    for i ∈ 1:n, j ∈ 1:m
+        C[i,j] = sph2cart(θ[i], ϕ[j])
+    end
+    #mean arclength from land cells to ocean cells
+    ℒ = zero(𝒯)
+    @inbounds for i ∈ 1:n, j ∈ 1:m
+        if mask[i,j] & (-cut <= lat[i] <= cut)
+            #find the minimum distance to the ocean for cell i,j
+            𝓁 = Inf
+            for k ∈ 1:n, l ∈ 1:m
+                if (k != i) & (j != l) #don't check a cell against itself
+                    𝓁ᵢⱼ = arclength(C[i,j], C[j,k])
+                    if 𝓁ᵢⱼ < 𝓁
+                        𝓁 = 𝓁ᵢⱼ
+                    end
+                end
+            end
+            ℒ += 𝓁
+        end
+    end
+    #normalize by the grid size
+    ℒ/(n*m)
+end
