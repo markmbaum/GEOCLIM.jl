@@ -47,6 +47,8 @@ topos = [
     #mean land temperature/runoff should be reasonable
     @test all(250 .< meanlandtemperature.(C) .< 300)
     @test all(1e-9 .< meanlandrunoff.(C) .< 2e-8)
+    @test all(7e5 .< totallandrunoff.(C) .< 1.5e6)
+    @test all(11 .< meanlandlatitude.(C) .< 12)
 end
 
 #basic check on total weathering function ranges
@@ -61,6 +63,8 @@ end
 
 #test some interpolation
 I = ClimatologyInterpolator(C, log10.(co2))
+
+println(I)
 
 @testset "Equlibrium CO2" begin
     f₁(_,c) = godderis(c, 0.043, 48200, 288.15)
