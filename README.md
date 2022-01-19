@@ -76,7 +76,7 @@ logpCO2 = [1., 2., 3.]
 I = ClimatologyInterpolator(C, logpCO2) #C is a Vector{Climatology}
 
 #define the weathering operation using mac, where x is log10(pCO2)
-w(c,x) = mac(c, exp10(x)*1e-6, 11.1, 288.15, 285e-6)
+w(x,c) = mac(c, exp10(x)*1e-6, 11.1, 288.15, 285e-6)
 
 #find the log10(CO2) value where weathering balances 5e4 moles/second
 findequilibrium(I, w, 5e4)
