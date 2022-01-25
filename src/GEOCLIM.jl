@@ -149,17 +149,11 @@ end
 #--------------------------------------
 #total weathering wrappers for each method to be applied to a Climatology
 
-function godderis(𝒸::Climatology, k, Eₐ, Tₒ)
-    totalweathering(godderis, 𝒸, k, Eₐ, Tₒ)
-end
+godderis(𝒸::Climatology, args...) = totalweathering(godderis, 𝒸, args...)
 
-function whak(𝒸::Climatology, pCO2, k, Tₑ, T₀, pCO2₀, β=0.2)
-    totalweathering(whak, 𝒸, pCO2, k, Tₑ, T₀, pCO2₀, β)
-end
+whak(𝒸::Climatology, args...) = totalweathering(whak, 𝒸, args...)
 
-function mac(𝒸::Climatology, pCO2, Tₑ, T₀, pCO2₀; kwargs...)
-    totalweathering(mac, 𝒸, pCO2, Tₑ, T₀, pCO2₀; kwargs...)
-end
+mac(𝒸::Climatology, args...; kwargs...) = totalweathering(mac, 𝒸, args...; kwargs...)
 
 #------------------------------------------------------------------------------
 
@@ -219,7 +213,7 @@ function landfraction(fn::String;
                       latname::String="lat", #variable name
                       lonname::String="lon", #variable name
                       toponame::String="topo", #variable name
-                      cut::Real=Inf) #restrict to cells where -cutlat <= lat <= lat
+                      cut::Real=Inf) #restrict to cells where -cut <= lat <= cut
     #read variables from file
     lat = ncread(fn, latname)
     lon = ncread(fn, lonname)
