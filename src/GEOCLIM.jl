@@ -35,7 +35,7 @@ export godderis, whak, mac
 As implementated by
   * Goddéris, Y. et al. Onset and ending of the late Palaeozoic ice age triggered by tectonically paced rock weathering. Nature Geosci 10, 382–386 (2017).
   * Donnadieu, Y. et al. A GEOCLIM simulation of climatic and biogeochemical consequences of Pangea breakup: SIMULATION OF PANGEA BREAKUP. Geochem. Geophys. Geosyst. 7, n/a-n/a (2006).
-and in other, similar papers.
+and in other, similar studies.
 
 Arguments
   r - runoff [m/s]
@@ -66,17 +66,18 @@ Arguments
 whak(r, T, pCO2, k, Tₑ, T₀, pCO2₀, β=0.2) = k*r*exp((T - T₀)/Tₑ)*(pCO2/pCO2₀)^β
 
 #==============================================================================
-As implementated by
+Originally named after
   * Maher, K. & Chamberlain, C. P. Hydrologic Regulation of Chemical Weathering and the Geologic Carbon Cycle. Science 343, 1502–1504 (2014).
+As implementated by
   * Graham, R. J. & Pierrehumbert, R. Thermodynamic and Energetic Limits on Continental Silicate Weathering Strongly Impact the Climate and Habitability of Wet, Rocky Worlds. ApJ 896, 115 (2020).
 
 Arguments
   r - runoff [m/s]
   T - temperature [K]
-  pCO2 - carbon dioxide concentration [units must be same as pCO2₀]
+  pCO2 - carbon dioxide concentration [bar]
   Tₑ - scaling of temperature dependence [K]
   T₀ - reference temperature [K]
-  pCO2₀ - reference carbon dioxide concentration [units must be same as pCO2]
+  pCO2₀ - reference carbon dioxide concentration [bar]
 Paramters
   n - thermodynamic pCO2 dependence [-]
   Λ - thermodynamic coefficient for Ceq [-]
