@@ -25,7 +25,7 @@ julia> ] add https://github.com/markmbaum/GEOCLIM.jl
 It's recommended that you do so in an [environment](https://pkgdocs.julialang.org/v1.2/environments/).
 
 ------
-### Usage
+#### Weathering Functions
 
 There are three weathering functions corresponding to the formulations listed above
 1. `godderis(r, T, k, Eₐ, T₀)`
@@ -46,6 +46,9 @@ There are three weathering functions corresponding to the formulations listed ab
              
 where `r` is runoff and `T` is temperature. You can find explanations of all the other arguments and their units in the [main source file](https://github.com/markmbaum/GEOCLIM.jl/blob/main/src/GEOCLIM.jl) or the referenced papers. These primary functions have no type restrictions.
 
+------
+#### Climatologies
+
 The rest of the package is focused on two dimensional grids of results from GCM simulations and is structured around the `Climatology` type. Read GCM results into a `Climatology` by calling the constructor
 ```
 Climatology(fnr,   #runoff file name
@@ -62,6 +65,15 @@ Climatology(fnr,   #runoff file name
 where the file names point to NetCDF files.
 
 Then each of the weathering functions can be called on a `Climatology` by passing the struct instead of `r` and `T`, returning a global sum of weathering in each grid cell.
+
+For example, to compute the global `mac` weathering estimate with a climatology variable called `clim`,
+```
+mac(clim, pCO2, Tₑ, T₀, pCO2₀)
+```
+The temperature and runoff are already in the struct, so you only need to provide the other weathering arguments.
+
+------
+#### Climatology Interpolation and Weathering Equilibria
 
 Multiple climatologies can be linked into a `ClimatologyInterpolator` to easily perform cell-wise interpolation. The constructor is
 ```
