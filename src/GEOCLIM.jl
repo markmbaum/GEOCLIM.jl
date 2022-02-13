@@ -200,48 +200,75 @@ end
 #------------------------------------------------------------------------------
 # some other general functions
 
-export cellarea, landfraction
+export landfraction
+export meanlandlatitude, meanabslandlatitude
 
-#area of a grid box rectangular in latitude and longitude
-# colatitude θ ∈ [0,π]
-# longitude ϕ ∈ [0,2π]
-cellarea(r, Δϕ, θ₁, θ₂) = (r^2)*abs(Δϕ*(cos(θ₁) - cos(θ₂)))
+function readtopo(fn::String,
+                  latname::String="lat", #variable name
+                  toponame::String="topo") #variable name
+    #read variables from file
+    lat = ncread(fn, latname)
+    topo = ncread(fn, toponame)
+    #transpose if needed
+    n = length(lat)
+    if size(topo,2) == n
+        return lat, collect(transpose(topo))
+    else
+        @assert size(topo,1) == n
+        return lat, topo
+    end
+end
+
+function landmean(X::AbstractMatrix{𝒯},
+                  lat::AbstractVector,
+                  mask::BitMatrix,
+                  cut::Real=Inf) where {𝒯}
+    n, m = size(X)
+    @assert length(lat) == n
+    num = zero(𝒯)
+    den = zero(𝒯)
+    @inbounds for i ∈ 1:n
+        if -cut <= lat[i] <= cut
+            #cell weight depends on latitude
+            α = cos(lat[i]*π/180)
+            for j ∈ 1:m
+                if mask[i,j]
+                    num += α*X[i,j]
+                    den += α
+                end
+            end
+        end
+    end
+    return num/den
+end
 
 #computes land fraction of a topography file
 #assumes latitude ∈ [-90, 90]°
 #assumes land is where topo > 0
 function landfraction(fn::String;
-                      latname::String="lat", #variable name
-                      lonname::String="lon", #variable name
-                      toponame::String="topo", #variable name
+                      latname::String="lat",
+                      toponame::String="topo",
                       cut::Real=Inf) #restrict to cells where -cut <= lat <= cut
-    #read variables from file
-    lat = ncread(fn, latname)
-    lon = ncread(fn, lonname)
-    topo = ncread(fn, toponame)
-    #transpose if needed
-    n, m = length(lat), length(lon)
-    if size(topo) == (m,n)
-        topo = collect(transpose(topo))
-    else
-        @assert size(topo) == (n,m)
-    end
-    #compute
-    L = 0.0
-    A = 0.0
-    @inbounds for i ∈ 1:n
-        if -cut <= lat[i] <= cut
-            #cell weight depends on latitude
-            w = cos(lat[i]*π/180)
-            for j ∈ 1:m
-                A += w
-                if topo[i,j] > 0
-                    L += w
-                end
-            end
-        end
-    end
-    return L/A
+    lat, topo = readtopo(fn, latname, toponame)
+    landmean(topo .> 0, lat, trues(size(topo)), cut)
+end
+
+function meanlandlatitude(fn::String;
+                          latname::String="lat",
+                          toponame::String="topo",
+                          cut::Real=Inf) #restrict to cells where -cut <= lat <= cut
+    lat, topo = readtopo(fn, latname, toponame)
+    latgrid = repeat(lat, 1, size(topo,2))
+    landmean(latgrid, lat, topo .> 0, cut)
+end
+
+function meanabslandlatitude(fn::String;
+                             latname::String="lat",
+                             toponame::String="topo",
+                             cut::Real=Inf) #restrict to cells where -cut <= lat <= cut
+    lat, topo = readtopo(fn, latname, toponame)
+    latgrid = repeat(abs.(lat), 1, size(topo,2))
+    landmean(latgrid, lat, topo .> 0, cut)
 end
 
 end

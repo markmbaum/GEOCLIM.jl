@@ -1,5 +1,10 @@
 export Climatology
 
+#area of a grid box rectangular in latitude and longitude
+# colatitude θ ∈ [0,π]
+# longitude ϕ ∈ [0,2π]
+cellarea(r, Δϕ, θ₁, θ₂) = (r^2)*abs(Δϕ*(cos(θ₁) - cos(θ₂)))
+
 checktranspose(A::Matrix)::Matrix = (size(A,1) > size(A,2)) ? collect(transpose(A)) : A
 
 function readgrid(fn, v)::Matrix
@@ -124,15 +129,14 @@ end
 
 #--------------------------------------
 
-export landfraction
 export meanlandtemperature
 export meanlandrunoff, totallandrunoff
-export meanlandlatitude
 
 checkcut(cut) = @assert cut >= 0 "latitude cutoff must be positive"
 
 checksize(n, m, X) = @assert size(X) == (n,m) "size mismatch between array and Climatology"
 
+#already exported
 function landfraction(𝒸::Climatology{𝒯}; cut::Real=Inf) where {𝒯}
     @unpack A, f, lat, n, m = 𝒸
     checkcut(cut)
@@ -185,7 +189,11 @@ meanlandrunoff(𝒸::Climatology; cut::Real=Inf) = landmean(𝒸.r, 𝒸, cut)
 
 totallandrunoff(𝒸::Climatology; cut::Real=Inf) = landsum(𝒸.r, 𝒸, cut)
 
+#already exported
 meanlandlatitude(𝒸::Climatology) = landmean(repeat(𝒸.lat, 1, 𝒸.m), 𝒸)
+
+#already exported
+meanabslandlatitude(𝒸::Climatology) = landmean(repeat(abs.(𝒸.lat), 1, 𝒸.m), 𝒸)
 
 #--------------------------------------
 export meanoceandistance
