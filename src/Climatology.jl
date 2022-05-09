@@ -137,12 +137,26 @@ checkcut(cut) = @assert cut >= 0 "latitude cutoff must be positive"
 checksize(n, m, X) = @assert size(X) == (n,m) "size mismatch between array and Climatology"
 
 #already exported
-function landfraction(𝒸::Climatology{𝒯}; cut::Real=Inf) where {𝒯}
+function landfraction(𝒸::Climatology{𝒯}, cut::Real=Inf) where {𝒯}
     @unpack A, f, lat, n, m = 𝒸
     checkcut(cut)
     @multiassign num, den = zero(𝒯)
     @inbounds for i ∈ 1:n, j ∈ 1:m
         if -cut <= lat[i] <= cut
+            num += A[i,j]*f[i,j]
+            den += A[i,j]
+        end
+    end
+    return num/den
+end
+
+function landfraction(𝒸::Climatology{𝒯}, cut::Tuple{Real,Real}) where {𝒯}
+    @unpack A, f, lat, n, m = 𝒸
+    a, b = cut
+    @assert a < b "first cutoff latitude must be less than second"
+    @multiassign num, den = zero(𝒯)
+    @inbounds for i ∈ 1:n, j ∈ 1:m
+        if a <= abs(lat[i]) <= b
             num += A[i,j]*f[i,j]
             den += A[i,j]
         end
@@ -183,11 +197,11 @@ function landsum(X::AbstractMatrix{𝒯}, 𝒸::Climatology{𝒯}, cut::Real=Inf
     return s
 end
 
-meanlandtemperature(𝒸::Climatology; cut::Real=Inf) = landmean(𝒸.T, 𝒸, cut)
+meanlandtemperature(𝒸::Climatology, cut::Real=Inf) = landmean(𝒸.T, 𝒸, cut)
 
-meanlandrunoff(𝒸::Climatology; cut::Real=Inf) = landmean(𝒸.r, 𝒸, cut)
+meanlandrunoff(𝒸::Climatology, cut::Real=Inf) = landmean(𝒸.r, 𝒸, cut)
 
-totallandrunoff(𝒸::Climatology; cut::Real=Inf) = landsum(𝒸.r, 𝒸, cut)
+totallandrunoff(𝒸::Climatology, cut::Real=Inf) = landsum(𝒸.r, 𝒸, cut)
 
 #already exported
 meanlandlatitude(𝒸::Climatology) = landmean(repeat(𝒸.lat, 1, 𝒸.m), 𝒸)

@@ -44,6 +44,7 @@ topos = [
 @testset "Land Quantities" begin
     #land fractions should be close to 30 %
     @test all(0.29 .< landfraction.(C) .< 0.31)
+    @test all(0.29 .< landfraction.(C, (-90,90)) .< 0.31)
     #mean land temperature/runoff should be reasonable
     @test all(250 .< meanlandtemperature.(C) .< 300)
     @test all(1e-9 .< meanlandrunoff.(C) .< 2e-8)
