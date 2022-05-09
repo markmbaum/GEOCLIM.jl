@@ -228,7 +228,7 @@ function arclength(c₁::SVector{3,T}, c₂::SVector{3,T}) where {T}
     acos(d)
 end
 
-function meanoceandistance(𝒸::Climatology{𝒯}; cut::Real=Inf, R::Real=𝐑ₑ) where {𝒯}
+function meanoceandistance(𝒸::Climatology{𝒯}, cut::Real=Inf, R::Real=𝐑ₑ) where {𝒯}
     @unpack mask, lat, n, m = 𝒸
     checkcut(cut)
     @assert any(mask .== 0) "no ocean cells, can't compute distances to ocean"
