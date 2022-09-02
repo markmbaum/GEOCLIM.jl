@@ -14,6 +14,15 @@ This module replicates some features of the [GEOCLIM](https://geoclimmodel.wordp
 
 The module implements these formulations to estimate global silicate weathering rates from gridded climatology, typically taken from the results of a global climate model like [CCSM](https://www.cesm.ucar.edu/models/ccsm4.0/) or [FOAM](https://www.mcs.anl.gov/research/projects/foam/). It is intended to estimate weathering during periods of Earth history when the continental configuration was radically different, typically more than 100 million years ago. For more information about the original GEOCLIM, see the Methods/Supplement of [Goddéris et al.](https://doi.org/10.1038/ngeo2931)
 
+The module also includes a number of handy functions for computing things based on the land-sea mask of the climatologies, like
+* land/ocean fraction
+* area-weighted average
+* area-weighted sum
+* mean distances to ocean
+* land mass perimeter
+
+The first three can also be restricted to latitude bands symmetric about the equator.
+
 ------
 ### Install
 

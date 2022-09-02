@@ -74,3 +74,15 @@ println(I)
     f₃(x,c) = mac(c, exp10(x)*1e-6, 11.1, 288.15, 285e-6)
     @test 1.5 < findequilibrium(I, f₃, 5e4) < 2.5
 end
+
+#test perimeter calculation on hemispheres
+@testset "Perimeter" begin
+    c = deepcopy(C[1])
+    n, m = c.mask |> size
+    c.mask .= 0
+    c.mask[1:n÷2,:] .= 1
+    @test isapprox(perimeter(c, 1), 2π, rtol=1e-3)
+    c.mask .= 0
+    c.mask[:,1:m÷2] .= 1
+    @test isapprox(perimeter(c, 1), 2π, rtol=1e-3)
+end

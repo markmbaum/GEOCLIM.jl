@@ -267,3 +267,37 @@ function meanoceandistance(𝒸::Climatology{𝒯}, cut::Real=Inf, R::Real=𝐑�
     #normalize by cell count and convert from radians to meters
     R*ℒ/count
 end
+
+#--------------------------------------
+export perimeter
+
+function perimeter(mask::BitMatrix, lat::Vector{𝒯}, R::Real=𝐑ₑ) where {𝒯}
+    @assert size(mask,1) == length(lat)
+    n, m = size(mask)
+    B = CircularArray(mask)
+    Δϕ = convert(𝒯, 2π/m)
+    Δθ = convert(𝒯, π/n)
+    c = cos.(LinRange(-π/2, π/2, n+1))
+    p = zero(𝒯)
+    for i ∈ 1:n, j ∈ 1:m
+        if B[i,j]
+            #look left and right
+            for k ∈ (j-1,j+1)
+                if !B[i,k]
+                    p += Δθ*R
+                end
+            end
+            #look "up" 
+            if !B[i-1,j]
+                p += Δϕ*R*c[i]
+            end
+            #look "down" 
+            if !B[i+1,j]
+                p += Δϕ*R*c[i+1]
+            end
+        end
+    end
+    return p
+end
+
+perimeter(𝒸::Climatology, R::Real=𝐑ₑ) = perimeter(𝒸.mask, 𝒸.lat, R)

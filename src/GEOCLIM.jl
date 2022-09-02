@@ -7,6 +7,7 @@ using Roots
 using BasicInterpolators
 using StaticArrays: SVector
 using LinearAlgebra: ⋅ #dot product
+using CircularArrays
 
 #------------------------------------------------------------------------------
 # immutable physical constants
