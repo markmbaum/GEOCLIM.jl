@@ -14,7 +14,7 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
 [compat]
-BasicInterpolators = "0.6"
+BasicInterpolators = "0.6, 0.7"
 CircularArrays = "1"
 MultiAssign = "0.1"
 NetCDF = "0.11"
