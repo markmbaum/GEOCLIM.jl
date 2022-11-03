@@ -134,29 +134,25 @@ export meanlandrunoff, totallandrunoff
 
 checkcut(cut) = @assert cut >= 0 "latitude cutoff must be positive"
 
-checksize(n, m, X) = @assert size(X) == (n,m) "size mismatch between array and Climatology"
+checksize(𝒸, X) = @assert size(X) == size(𝒸) "size mismatch between array and Climatology"
 
 #already exported
-function landfraction(𝒸::Climatology{𝒯}, cut::Tuple{Real,Real}) where {𝒯}
+function landfraction(𝒸::Climatology{𝒯}, cut::Real=Inf) where {𝒯}
     @unpack mask, A, f, lat, n, m = 𝒸
-    checkcut.(cut)
-    a, b = cut
-    @assert a < b "first cutoff latitude must be less than second"
+    checkcut(cut)
     @multiassign num, den = zero(𝒯)
     @inbounds for i ∈ 1:n, j ∈ 1:m
-        if mask[i,j] & (a <= abs(lat[i]) <= b)
+        if mask[i,j] & (-cut <= lat[i] <= cut)
             num += A[i,j]*f[i,j]
             den += A[i,j]
         end
     end
-    return num/den
+    return iszero(den) ? zero(𝒯) : num/den
 end
-
-landfraction(𝒸::Climatology, cut::Real=Inf) = landfraction(𝒸, (-cut, cut))
 
 function landmean(X::AbstractMatrix{𝒯}, 𝒸::Climatology{𝒯}, cut::Real=Inf) where {𝒯}
     @unpack mask, A, f, lat, n, m = 𝒸
-    checksize(n, m, X)
+    checksize(𝒸, X)
     checkcut(cut)
     @multiassign num, den = zero(𝒯)
     @inbounds for i ∈ 1:n, j ∈ 1:m
@@ -168,12 +164,12 @@ function landmean(X::AbstractMatrix{𝒯}, 𝒸::Climatology{𝒯}, cut::Real=In
             den += LA
         end
     end
-    return num/den
+    return iszero(den) ? zero(𝒯) : num/den
 end
 
 function landsum(X::AbstractMatrix{𝒯}, 𝒸::Climatology{𝒯}, cut::Real=Inf) where {𝒯}
     @unpack mask, A, f, lat, n, m = 𝒸
-    checksize(n, m, X)
+    checksize(𝒸, X)
     checkcut(cut)
     s = zero(𝒯)
     @inbounds for i ∈ 1:n, j ∈ 1:m
