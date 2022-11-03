@@ -142,7 +142,8 @@ function landfraction(𝒸::Climatology{𝒯}, cut::Real=Inf) where {𝒯}
     checkcut(cut)
     @multiassign num, den = zero(𝒯)
     @inbounds for i ∈ 1:n, j ∈ 1:m
-        if mask[i,j] & (-cut <= lat[i] <= cut)
+        #don't check the mask here b/c denominator must accumulate area
+        if -cut <= lat[i] <= cut
             num += A[i,j]*f[i,j]
             den += A[i,j]
         end
