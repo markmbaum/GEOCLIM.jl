@@ -1,7 +1,7 @@
 name = "GEOCLIM"
 uuid = "3dbb98da-0543-4a00-be75-dcc1e89fb417"
 authors = ["Mark Baum <markmbaum@protonmail.com>", "Minmin Fu <mjfu@g.harvard.edu>"]
-version = "0.1.13"
+version = "0.1.14"
 
 [deps]
 BasicInterpolators = "26cce99e-4866-4b6d-ab74-862489e035e0"
@@ -14,7 +14,7 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
 [compat]
-BasicInterpolators = "0.6, 0.7"
+BasicInterpolators = "0.7"
 CircularArrays = "1"
 MultiAssign = "0.1"
 NetCDF = "0.11"
